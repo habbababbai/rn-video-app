@@ -24,26 +24,6 @@ export default function HomeScreen() {
         router.replace("/login" as any);
     };
 
-    // Auto-fetch effect - logs video data when fetched
-    React.useEffect(() => {
-        if (searchVideosQuery.isSuccess && searchVideosQuery.data) {
-            console.log(
-                `✅ Successfully fetched ${searchVideosQuery.data.length} "${searchTerm}" videos`
-            );
-            console.log("📹 Video titles:");
-            searchVideosQuery.data.forEach((video, index) => {
-                console.log(`${index + 1}. ${video.snippet.title}`);
-            });
-        }
-    }, [searchVideosQuery.isSuccess, searchVideosQuery.data, searchTerm]);
-
-    // Error handling
-    React.useEffect(() => {
-        if (searchVideosQuery.isError) {
-            console.error("❌ Error fetching videos:", searchVideosQuery.error);
-        }
-    }, [searchVideosQuery.isError, searchVideosQuery.error]);
-
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.content}>

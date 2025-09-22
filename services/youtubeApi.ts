@@ -1,7 +1,7 @@
+import { YOUTUBE_API_KEY } from "@env";
 import axios from "axios";
 
 // YouTube Data API configuration
-const YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY_HERE"; // Replace with your actual API key
 const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
 // Types for YouTube API responses
