@@ -1,9 +1,8 @@
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { logout } from "@/store/slices/authSlice";
 import { router } from "expo-router";
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { useDispatch} from "react-redux";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch } from "react-redux";
 
 export default function HomeScreen() {
     const dispatch = useDispatch();
@@ -15,13 +14,9 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ThemedView style={styles.content}>
-                <ThemedText type="title" style={styles.title}>
-                    Welcome!
-                </ThemedText>
-                <ThemedText type="default" style={styles.subtitle}>
-                    You are logged in.
-                </ThemedText>
+            <View style={styles.content}>
+                <Text style={styles.title}>Welcome!</Text>
+                <Text style={styles.subtitle}>You are logged in.</Text>
 
                 <TouchableOpacity
                     style={styles.logoutButton}
@@ -29,7 +24,7 @@ export default function HomeScreen() {
                 >
                     <Text style={styles.logoutButtonText}>Logout</Text>
                 </TouchableOpacity>
-            </ThemedView>
+            </View>
         </SafeAreaView>
     );
 }
