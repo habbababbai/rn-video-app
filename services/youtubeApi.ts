@@ -1,5 +1,8 @@
-import { YOUTUBE_API_KEY } from "@env";
 import axios from "axios";
+
+// Import environment variable
+const YOUTUBE_API_KEY =
+    process.env.YOUTUBE_API_KEY || "YOUR_YOUTUBE_API_KEY_HERE";
 
 // YouTube Data API configuration
 const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
@@ -43,45 +46,7 @@ export interface YouTubeSearchResponse {
     };
 }
 
-/**
- * Test if the API key is valid by making a simple request
- * @returns Promise<boolean> - True if API key is valid
- */
-export const testApiKey = async (): Promise<boolean> => {
-    try {
-        if (!YOUTUBE_API_KEY) {
-            throw new Error("API key not configured");
-        }
 
-        console.log("🔑 Testing API key...");
-
-        // Use minimal working parameters
-        const testParams = {
-            part: "snippet",
-            q: "test",
-            type: "video",
-            maxResults: 1,
-            key: YOUTUBE_API_KEY,
-        };
-
-        const response = await axios.get(`${YOUTUBE_API_BASE_URL}/search`, {
-            params: testParams,
-            headers: {
-                Accept: "application/json",
-                "User-Agent": "ReactNative-VideoApp/1.0",
-            },
-            timeout: 10000, // 10 second timeout
-        });
-
-        console.log("✅ API key is valid!");
-        return true;
-    } catch (error: any) {
-        console.error("❌ API key test failed:");
-        console.error("- Status:", error.response?.status);
-        console.error("- Message:", error.response?.data?.error?.message);
-        return false;
-    }
-};
 
 /**
  * Fetch 10 videos using the working API structure
@@ -135,44 +100,3 @@ export const fetchVideosBySearchTerm = async (
     }
 };
 
-/**
- * Simple function to fetch react native videos
- * @returns Promise<YouTubeVideo[]> - Array of 10 videos
- */
-export const fetchSampleVideos = async (): Promise<YouTubeVideo[]> => {
-    return fetchVideosBySearchTerm("react native");
-};
-
-/**
- * Test with minimal parameters as per YouTube API documentation
- * This is the most basic request to verify API access
- */
-export const testMinimalApiCall = async (): Promise<boolean> => {
-    try {
-        console.log("🧪 Testing minimal API call...");
-
-        const response = await axios.get(`${YOUTUBE_API_BASE_URL}/search`, {
-            params: {
-                part: "snippet",
-                q: "test",
-                key: YOUTUBE_API_KEY,
-            },
-            headers: {
-                Accept: "application/json",
-            },
-            timeout: 10000,
-        });
-
-        console.log("✅ Minimal API call successful!");
-        console.log("- Response status:", response.status);
-        console.log("- Items found:", response.data.items?.length || 0);
-
-        return true;
-    } catch (error: any) {
-        console.error("❌ Minimal API call failed:");
-        console.error("- Status:", error.response?.status);
-        console.error("- Message:", error.response?.data?.error?.message);
-        console.error("- Full error:", error.response?.data);
-        return false;
-    }
-};
