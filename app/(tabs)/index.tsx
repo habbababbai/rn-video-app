@@ -1,9 +1,11 @@
+import SearchIcon from "@/assets/images/svg/search-icon.svg";
+import SettingsIcon from "@/assets/images/svg/settings-icon.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearch } from "@/hooks/useYouTubeApi";
 import { YouTubeVideo } from "@/services/youtubeApi";
 import { logout } from "@/store/slices/authSlice";
-import { fp, hp, wp } from "@/utils/responsive";
+import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router } from "expo-router";
 import React from "react";
 import {
@@ -13,7 +15,7 @@ import {
     RefreshControl,
     StyleSheet,
     Text,
-    TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -110,13 +112,13 @@ export default function HomeScreen() {
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.header}>
-                <Text style={styles.title}>Home</Text>
-                <TouchableOpacity
-                    style={styles.logoutButton}
-                    onPress={handleLogout}
-                >
-                    <Text style={styles.logoutButtonText}>Logout</Text>
-                </TouchableOpacity>
+                <TouchableWithoutFeedback>
+                    <View style={styles.searchContainer}>
+                        <SearchIcon style={styles.searchIcon} />
+                        <Text style={styles.searchText}>Search videos</Text>
+                    </View>
+                </TouchableWithoutFeedback>
+                <SettingsIcon />
             </View>
 
             <FlatList
@@ -263,4 +265,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "600",
     },
+    searchIcon: { margin: spacing.xs },
+    searchContainer: {
+        width: wp(297),
+        height: hp(44),
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: fp(2),
+        borderWidth: wp(2),
+        borderColor: colors.primary,
+    },
+    searchText: {
+        fontFamily: fonts.poppins,
+        fontSize: fp(16),
+        color: colors.primary,
+        letterSpacing: wp(0.5),
+        lineHeight: hp(24),
+    }
 });
