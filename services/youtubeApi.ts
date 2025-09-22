@@ -61,8 +61,6 @@ export const fetchVideosBySearchTerm = async (
             throw new Error("API key not configured");
         }
 
-        console.log(`🔍 Fetching '${searchTerm}' videos...`);
-
         // Use the same working parameter structure as testApiKey
         const params = {
             part: "snippet",
@@ -82,12 +80,6 @@ export const fetchVideosBySearchTerm = async (
                 },
                 timeout: 10000, // 10 second timeout
             }
-        );
-
-        console.log("✅ Success! Response status:", response.status);
-        console.log(
-            "✅ Number of videos found:",
-            response.data.items?.length || 0
         );
 
         return response.data.items;
