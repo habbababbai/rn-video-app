@@ -22,9 +22,8 @@ export const useYouTubeVideosBySearch = (
         queryKey: youtubeQueryKeys.videosBySearch(searchTerm, maxResults),
         queryFn: () => fetchVideosBySearchTerm(searchTerm, maxResults),
         enabled: !!searchTerm,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes
-        retry: 2,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        // Use global defaults for extended caching
+        retry: 1, // Reduce retries to save quota
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Faster retry
     });
 };

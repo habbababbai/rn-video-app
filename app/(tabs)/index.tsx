@@ -10,6 +10,7 @@ import {
     ActivityIndicator,
     FlatList,
     Image,
+    RefreshControl,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -39,6 +40,16 @@ export default function HomeScreen() {
         dispatch(logout());
         router.replace("/login" as any);
     };
+
+    const handleRefresh = () => {
+        queries.forEach((query) => {
+            if (query.refetch) {
+                query.refetch();
+            }
+        });
+    };
+
+    const isRefreshing = queries.some((query) => query.isFetching);
 
     const renderVideoItem = ({ item }: { item: YouTubeVideo }) => (
         <View style={styles.videoItem}>
@@ -114,6 +125,14 @@ export default function HomeScreen() {
                 keyExtractor={(keyword) => keyword}
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={colors.white}
+                        colors={[colors.white]}
+                    />
+                }
             />
         </SafeAreaView>
     );

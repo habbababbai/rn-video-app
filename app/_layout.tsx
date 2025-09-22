@@ -7,12 +7,15 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import { persistor, store } from "@/store";
 
-// Create a client
+// Create a client with extended caching
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+            staleTime: 24 * 60 * 60 * 1000, // 24 hours - data stays fresh for a day
+            gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days - keep in cache for a week
+            retry: 1, // Reduce retries to save quota
+            refetchOnWindowFocus: false, // Don't refetch on app focus
+            refetchOnReconnect: false, // Don't refetch on reconnect
         },
     },
 });
