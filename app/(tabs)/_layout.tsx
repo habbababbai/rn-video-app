@@ -10,7 +10,8 @@ import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TabLayout() {
-    return (r        <SafeAreaView
+    return (
+        <SafeAreaView
             style={{ flex: 1, backgroundColor: colors.secondary }}
             edges={["bottom"]}
         >
