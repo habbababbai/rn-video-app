@@ -1,9 +1,34 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import Video from "react-native-video";
+import { useRef, useState } from "react";
+import {
+    Dimensions,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import {
+    GestureHandlerRootView,
+    PanGestureHandler,
+} from "react-native-gesture-handler";
+import Video, { VideoRef } from "react-native-video";
 
 export default function VideoDetailsScreen() {
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
+    const videoRef = useRef<VideoRef>(null);
+
+    // Video state management
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isFinished, setIsFinished] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [isSeeking, setIsSeeking] = useState(false);
+    const [dragStartTime, setDragStartTime] = useState(0);
+
+    // Progress bar animation values
+    const screenWidth = Dimensions.get("window").width;
+    const progressBarWidth = screenWidth - 80; // Account for padding and time labels
 
     // Use placeholder video for testing, or you can implement logic to get actual video URL
     const videoSource =
@@ -11,8 +36,100 @@ export default function VideoDetailsScreen() {
             ? require("@/assets/videos/broadchurch.mp4")
             : null;
 
+    // Handle play/pause/replay functionality
+    const handlePlayPause = () => {
+        if (isFinished) {
+            // Replay video from beginning
+            videoRef.current?.seek(0);
+            setIsFinished(false);
+            setIsPlaying(true);
+        } else {
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    // Handle video events
+    const handleVideoLoad = (data: any) => {
+        console.log("Video Loaded:", data);
+        setIsFinished(false);
+        setDuration(data.duration);
+    };
+
+    const handleVideoEnd = () => {
+        setIsPlaying(false);
+        setIsFinished(true);
+        setCurrentTime(duration);
+        console.log("Video finished");
+    };
+
+    const handleVideoError = (error: any) => {
+        console.log("Video Error:", error);
+    };
+
+    const handleVideoProgress = (data: any) => {
+        if (!isSeeking) {
+            setCurrentTime(data.currentTime);
+        }
+    };
+
+    // Seek to specific time
+    const seekTo = (time: number) => {
+        videoRef.current?.seek(time);
+        setCurrentTime(time);
+    };
+
+    // Calculate progress percentage
+    const getProgress = () => {
+        return duration > 0 ? currentTime / duration : 0;
+    };
+
+    // Calculate thumb position
+    const getThumbPosition = () => {
+        return getProgress() * progressBarWidth;
+    };
+
+    // Format time helper
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    // Handle progress bar tap
+    const handleProgressBarPress = (event: any) => {
+        const { locationX } = event.nativeEvent;
+        const progress = Math.max(0, Math.min(locationX / progressBarWidth, 1));
+        const newTime = progress * duration;
+        seekTo(newTime);
+    };
+
+    // Handle thumb drag start
+    const handleThumbDragStart = () => {
+        setIsSeeking(true);
+        setDragStartTime(currentTime);
+    };
+
+    // Handle thumb drag
+    const handleThumbDrag = (event: any) => {
+        const { translationX } = event.nativeEvent;
+        // Convert translation to time change (more natural feeling)
+        const timeChange = (translationX / progressBarWidth) * duration;
+        const newTime = Math.max(
+            0,
+            Math.min(dragStartTime + timeChange, duration)
+        );
+        setCurrentTime(newTime);
+    };
+
+    // Handle thumb drag end
+    const handleThumbDragEnd = () => {
+        seekTo(currentTime);
+        setIsSeeking(false);
+        setDragStartTime(0);
+    };
+
     return (
-        <View style={styles.container}>
+        <GestureHandlerRootView style={styles.container}>
             <Stack.Screen
                 options={{
                     title: "Video Details",
@@ -23,13 +140,89 @@ export default function VideoDetailsScreen() {
             {videoSource ? (
                 <View style={styles.videoContainer}>
                     <Video
+                        ref={videoRef}
                         source={videoSource}
                         style={styles.video}
-                        controls={true}
+                        controls={false}
                         resizeMode="contain"
-                        onError={(error) => console.log("Video Error:", error)}
-                        onLoad={(data) => console.log("Video Loaded:", data)}
+                        paused={!isPlaying}
+                        onError={handleVideoError}
+                        onLoad={handleVideoLoad}
+                        onEnd={handleVideoEnd}
+                        onProgress={handleVideoProgress}
                     />
+
+                    {/* Custom Controls Overlay */}
+                    <View style={styles.controlsOverlay}>
+                        <TouchableOpacity
+                            style={styles.playButton}
+                            onPress={handlePlayPause}
+                            activeOpacity={0.8}
+                        >
+                            <MaterialIcons
+                                name={
+                                    isFinished
+                                        ? "replay"
+                                        : isPlaying
+                                        ? "pause"
+                                        : "play-arrow"
+                                }
+                                size={64}
+                                color="white"
+                            />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Progress Bar */}
+                    <View style={styles.progressContainer}>
+                        <Text style={styles.timeText}>
+                            {formatTime(currentTime)}
+                        </Text>
+                        <View style={styles.progressBarWrapper}>
+                            <TouchableOpacity
+                                style={styles.progressBarBackground}
+                                onPress={handleProgressBarPress}
+                                activeOpacity={0.8}
+                            >
+                                <View
+                                    style={[
+                                        styles.progressBarFill,
+                                        { width: getThumbPosition() },
+                                    ]}
+                                />
+                            </TouchableOpacity>
+                            <PanGestureHandler
+                                onGestureEvent={handleThumbDrag}
+                                onHandlerStateChange={(event) => {
+                                    const { state } = event.nativeEvent;
+                                    if (state === 2) {
+                                        // BEGAN
+                                        handleThumbDragStart();
+                                    } else if (state === 5) {
+                                        // END
+                                        handleThumbDragEnd();
+                                    }
+                                }}
+                            >
+                                <View
+                                    style={[
+                                        styles.progressThumb,
+                                        {
+                                            transform: [
+                                                {
+                                                    translateX:
+                                                        getThumbPosition(),
+                                                },
+                                            ],
+                                        },
+                                    ]}
+                                />
+                            </PanGestureHandler>
+                        </View>
+                        <Text style={styles.timeText}>
+                            {formatTime(duration)}
+                        </Text>
+                    </View>
                 </View>
             ) : (
                 <View style={styles.placeholderContainer}>
@@ -49,7 +242,7 @@ export default function VideoDetailsScreen() {
                     content.
                 </Text>
             </View>
-        </View>
+        </GestureHandlerRootView>
     );
 }
 
@@ -62,10 +255,95 @@ const styles = StyleSheet.create({
         width: "100%",
         aspectRatio: 16 / 9,
         backgroundColor: "#000",
+        position: "relative",
     },
     video: {
         width: "100%",
         height: "100%",
+    },
+    controlsOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.1)",
+    },
+    playButton: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    progressContainer: {
+        position: "absolute",
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 6,
+    },
+    timeText: {
+        color: "white",
+        fontSize: 12,
+        fontWeight: "500",
+        minWidth: 35,
+        textAlign: "center",
+    },
+    progressBarWrapper: {
+        flex: 1,
+        marginHorizontal: 12,
+        height: 20,
+        justifyContent: "center",
+    },
+    progressBarBackground: {
+        height: 4,
+        backgroundColor: "rgba(255, 255, 255, 0.3)",
+        borderRadius: 2,
+        position: "relative",
+    },
+    progressBarFill: {
+        height: 4,
+        backgroundColor: "#FF0000",
+        borderRadius: 2,
+        position: "absolute",
+        left: 0,
+        top: 0,
+    },
+    progressThumb: {
+        position: "absolute",
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: "#FF0000",
+        borderWidth: 2,
+        borderColor: "white",
+        top: -6,
+        left: -8,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 2,
+        elevation: 3,
     },
     placeholderContainer: {
         width: "100%",
