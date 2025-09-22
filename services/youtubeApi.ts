@@ -46,15 +46,15 @@ export interface YouTubeSearchResponse {
     };
 }
 
-
-
 /**
- * Fetch 10 videos using the working API structure
+ * Fetch videos using the working API structure
  * @param searchTerm - The term to search for
- * @returns Promise<YouTubeVideo[]> - Array of 10 videos
+ * @param maxResults - Maximum number of videos to fetch (default: 5)
+ * @returns Promise<YouTubeVideo[]> - Array of videos
  */
 export const fetchVideosBySearchTerm = async (
-    searchTerm: string
+    searchTerm: string,
+    maxResults: number = 5
 ): Promise<YouTubeVideo[]> => {
     try {
         if (!YOUTUBE_API_KEY) {
@@ -66,7 +66,7 @@ export const fetchVideosBySearchTerm = async (
             part: "snippet",
             q: searchTerm,
             type: "video",
-            maxResults: 10,
+            maxResults: maxResults,
             key: YOUTUBE_API_KEY,
         };
 
@@ -91,4 +91,3 @@ export const fetchVideosBySearchTerm = async (
         throw error;
     }
 };
-

@@ -1,11 +1,15 @@
+import { colors } from "@/constants/colors";
+import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearch } from "@/hooks/useYouTubeApi";
 import { YouTubeVideo } from "@/services/youtubeApi";
 import { logout } from "@/store/slices/authSlice";
+import { fp, hp, wp } from "@/utils/responsive";
 import { router } from "expo-router";
 import React from "react";
 import {
     ActivityIndicator,
     FlatList,
+    Image,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -17,16 +21,13 @@ import { useDispatch } from "react-redux";
 export default function HomeScreen() {
     const dispatch = useDispatch();
 
-    // Keywords for different sections
     const keywords = ["React Native", "React", "TypeScript", "Javascript"];
 
-    // React Query hooks for each keyword
-    const reactNativeQuery = useYouTubeVideosBySearch("React Native", true);
-    const reactQuery = useYouTubeVideosBySearch("React", true);
-    const typescriptQuery = useYouTubeVideosBySearch("TypeScript", true);
-    const javascriptQuery = useYouTubeVideosBySearch("Javascript", true);
+    const reactNativeQuery = useYouTubeVideosBySearch("React Native", 5);
+    const reactQuery = useYouTubeVideosBySearch("React", 5);
+    const typescriptQuery = useYouTubeVideosBySearch("TypeScript", 5);
+    const javascriptQuery = useYouTubeVideosBySearch("Javascript", 5);
 
-    // Array of queries for easy iteration
     const queries = [
         reactNativeQuery,
         reactQuery,
@@ -39,47 +40,64 @@ export default function HomeScreen() {
         router.replace("/login" as any);
     };
 
-    // Render video item component
     const renderVideoItem = ({ item }: { item: YouTubeVideo }) => (
         <View style={styles.videoItem}>
-            <Text style={styles.videoTitle} numberOfLines={2}>
-                {item.snippet.title}
-            </Text>
-            <Text style={styles.videoChannel}>{item.snippet.channelTitle}</Text>
+            <Image
+                source={{ uri: item.snippet.thumbnails.medium.url }}
+                style={styles.thumbnail}
+                resizeMode="cover"
+            />
+            <View style={styles.videoInfo}>
+                <Text style={styles.videoTitle} numberOfLines={2}>
+                    {item.snippet.title}
+                </Text>
+                <Text style={styles.videoUploadDate} numberOfLines={1}>
+                    {new Date(item.snippet.publishedAt).toLocaleDateString()}
+                </Text>
+            </View>
         </View>
     );
 
-    // Render section component
+    const LoadingComponent = () => (
+        <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#007AFF" />
+            <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+    );
+
     const renderSection = ({ item, index }: { item: any; index: number }) => {
         const query = queries[index];
         const keyword = keywords[index];
 
         return (
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{keyword}</Text>
-                {query.isLoading ? (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="small" color="#007AFF" />
-                        <Text style={styles.loadingText}>Loading...</Text>
+            <View>
+                {index > 0 && <View style={styles.separator} />}
+                <View style={styles.section}>
+                    <View style={styles.sectionTitleContainer}>
+                        <Text style={styles.sectionTitle}>{keyword}</Text>
+                        <Text style={styles.showMoreText}>Show more</Text>
                     </View>
-                ) : query.isError ? (
-                    <Text style={styles.errorText}>Failed to load</Text>
-                ) : query.data ? (
-                    <FlatList
-                        data={query.data.slice(0, 5)} // Show only 5 items
-                        renderItem={renderVideoItem}
-                        keyExtractor={(video) => video.id.videoId}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.horizontalList}
-                    />
-                ) : null}
+                    {query.isLoading ? (
+                        <LoadingComponent />
+                    ) : query.isError ? (
+                        <Text style={styles.errorText}>Failed to load</Text>
+                    ) : query.data ? (
+                        <FlatList
+                            data={query.data.slice(0, 5)}
+                            renderItem={renderVideoItem}
+                            keyExtractor={(video) => video.id.videoId}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.horizontalList}
+                        />
+                    ) : null}
+                </View>
             </View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.header}>
                 <Text style={styles.title}>Home</Text>
                 <TouchableOpacity
@@ -104,7 +122,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#f5f5f5",
+        backgroundColor: colors.white,
     },
     header: {
         flexDirection: "row",
@@ -117,8 +135,10 @@ const styles = StyleSheet.create({
         borderBottomColor: "#e0e0e0",
     },
     title: {
-        fontSize: 24,
+        fontSize: fp(18),
+        fontFamily: fonts.poppinsSemiBold,
         fontWeight: "bold",
+        letterSpacing: wp(2),
         color: "#333",
     },
     listContainer: {
@@ -130,35 +150,69 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#333",
-        marginBottom: 10,
-        paddingHorizontal: 20,
+        fontSize: fp(18),
+        fontFamily: fonts.poppinsSemiBold,
+        fontWeight: "bold",
+        letterSpacing: wp(0.5),
+        color: colors.primary,
+    },
+    separator: {
+        height: hp(2),
+        backgroundColor: colors.primary,
+        width: "100%",
+    },
+    sectionTitleContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: wp(20),
+        marginBottom: hp(10),
+    },
+    showMoreText: {
+        fontFamily: fonts.poppins,
+        fontSize: fp(12),
+        letterSpacing: wp(0.5),
+        textDecorationLine: "underline",
     },
     horizontalList: {
         paddingHorizontal: 20,
     },
     videoItem: {
         width: 200,
-        backgroundColor: "#f8f9fa",
-        borderRadius: 8,
-        padding: 12,
+        backgroundColor: "#fff",
         marginRight: 12,
-        borderWidth: 1,
-        borderColor: "#e9ecef",
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    thumbnail: {
+        width: "100%",
+        height: hp(112),
+        borderRadius: fp(16),
+    },
+    videoInfo: {
+        padding: 12,
     },
     videoTitle: {
-        fontSize: 14,
+        fontFamily: fonts.poppinsMedium,
+        fontSize: fp(12),
         fontWeight: "500",
-        color: "#333",
-        marginBottom: 6,
-        lineHeight: 18,
+        color: colors.primary,
+        lineHeight: hp(12),
+        letterSpacing: wp(0.5),
     },
-    videoChannel: {
-        fontSize: 12,
-        color: "#666",
-        fontStyle: "italic",
+    videoUploadDate: {
+        fontFamily: fonts.poppins,
+        fontSize: fp(10),
+        color: colors.primary,
+        textAlign: "right",
+        letterSpacing: wp(0.5),
     },
     loadingContainer: {
         alignItems: "center",
