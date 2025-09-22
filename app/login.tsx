@@ -79,7 +79,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: colors.bg,
+        backgroundColor: colors.secondary,
         flex: 1,
     },
     content: { flex: 1, alignItems: "center", justifyContent: "space-between" },
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
         width: wp(327),
     },
     button: {
-        backgroundColor: colors.button,
+        backgroundColor: colors.primary,
         width: wp(327),
         height: hp(48),
         borderRadius: fp(12),
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     },
     linkText: {
         fontFamily: fonts.poppins,
-        color: colors.button,
+        color: colors.secondary,
         fontSize: fp(13),
         lineHeight: hp(16),
         textDecorationLine: "underline",
