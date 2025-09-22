@@ -55,10 +55,6 @@ export default function RootLayout() {
                             name="(tabs)"
                             options={{ headerShown: false }}
                         />
-                        <Stack.Screen
-                            name="video-details"
-                            options={{ headerShown: true }}
-                        />
                     </Stack>
                     <StatusBar style="auto" />
                 </PersistGate>

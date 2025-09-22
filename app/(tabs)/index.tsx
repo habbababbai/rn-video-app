@@ -54,51 +54,21 @@ export default function HomeScreen() {
     const isRefreshing = queries.some((query) => query.isFetching);
 
     const renderVideoItem = ({ item }: { item: YouTubeVideo }) => (
-        <TouchableWithoutFeedback
-            onPress={() =>
-                router.push(`/video-details?videoId=${item.id.videoId}`)
-            }
-        >
-            <View style={styles.videoItem}>
-                <Image
-                    source={{ uri: item.snippet.thumbnails.medium.url }}
-                    style={styles.thumbnail}
-                    resizeMode="cover"
-                />
-                <View style={styles.videoInfo}>
-                    <Text style={styles.videoTitle} numberOfLines={2}>
-                        {item.snippet.title}
-                    </Text>
-                    <Text style={styles.videoUploadDate} numberOfLines={1}>
-                        {new Date(
-                            item.snippet.publishedAt
-                        ).toLocaleDateString()}
-                    </Text>
-                </View>
+        <View style={styles.videoItem}>
+            <Image
+                source={{ uri: item.snippet.thumbnails.medium.url }}
+                style={styles.thumbnail}
+                resizeMode="cover"
+            />
+            <View style={styles.videoInfo}>
+                <Text style={styles.videoTitle} numberOfLines={2}>
+                    {item.snippet.title}
+                </Text>
+                <Text style={styles.videoUploadDate} numberOfLines={1}>
+                    {new Date(item.snippet.publishedAt).toLocaleDateString()}
+                </Text>
             </View>
-        </TouchableWithoutFeedback>
-    );
-
-    const renderPlaceholderVideo = () => (
-        <TouchableWithoutFeedback
-            onPress={() =>
-                router.push("/video-details?videoId=placeholder-local-tab")
-            }
-        >
-            <View style={styles.videoItem}>
-                <View style={styles.placeholderThumbnail}>
-                    <Text style={styles.placeholderText}>Local Tab</Text>
-                </View>
-                <View style={styles.videoInfo}>
-                    <Text style={styles.videoTitle} numberOfLines={2}>
-                        Local Tab - Test Video
-                    </Text>
-                    <Text style={styles.videoUploadDate} numberOfLines={1}>
-                        {new Date().toLocaleDateString()}
-                    </Text>
-                </View>
-            </View>
-        </TouchableWithoutFeedback>
+        </View>
     );
 
     const LoadingComponent = () => (
@@ -123,9 +93,7 @@ export default function HomeScreen() {
                     {query.isLoading ? (
                         <LoadingComponent />
                     ) : query.isError ? (
-                        <View style={styles.horizontalList}>
-                            {renderPlaceholderVideo()}
-                        </View>
+                        <Text style={styles.errorText}>Failed to load</Text>
                     ) : query.data ? (
                         <FlatList
                             data={query.data.slice(0, 5)}
@@ -313,19 +281,5 @@ const styles = StyleSheet.create({
         color: colors.primary,
         letterSpacing: wp(0.5),
         lineHeight: hp(24),
-    },
-    placeholderThumbnail: {
-        width: "100%",
-        height: hp(112),
-        backgroundColor: colors.primary,
-        borderRadius: fp(16),
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    placeholderText: {
-        fontFamily: fonts.poppinsSemiBold,
-        fontSize: fp(14),
-        color: colors.white,
-        fontWeight: "600",
-    },
+    }
 });
