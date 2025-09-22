@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     StyleSheet,
@@ -12,6 +12,11 @@ import {
     GestureHandlerRootView,
     PanGestureHandler,
 } from "react-native-gesture-handler";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 import Video, { VideoRef } from "react-native-video";
 
 export default function VideoDetailsScreen() {
@@ -25,6 +30,42 @@ export default function VideoDetailsScreen() {
     const [duration, setDuration] = useState(0);
     const [isSeeking, setIsSeeking] = useState(false);
     const [dragStartTime, setDragStartTime] = useState(0);
+    const [showControls, setShowControls] = useState(true);
+
+    // Auto-hide controls
+    const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
+    const controlsOpacity = useSharedValue(1);
+
+    // Auto-hide timer
+    const startHideTimer = useCallback(() => {
+        if (hideControlsTimeoutRef.current) {
+            clearTimeout(hideControlsTimeoutRef.current);
+        }
+        hideControlsTimeoutRef.current = setTimeout(() => {
+            if (isPlaying && !isSeeking) {
+                controlsOpacity.value = withTiming(0, { duration: 300 });
+                setShowControls(false);
+            }
+        }, 3000);
+    }, [isPlaying, isSeeking, controlsOpacity]);
+
+    // Show controls and restart timer
+    const showControlsAndStartTimer = useCallback(() => {
+        controlsOpacity.value = withTiming(1, { duration: 300 });
+        setShowControls(true);
+        startHideTimer();
+    }, [controlsOpacity, startHideTimer]);
+
+    // Clear timer on unmount
+    useEffect(() => {
+        return () => {
+            if (hideControlsTimeoutRef.current) {
+                clearTimeout(hideControlsTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Progress bar animation values
     const screenWidth = Dimensions.get("window").width;
@@ -46,6 +87,7 @@ export default function VideoDetailsScreen() {
         } else {
             setIsPlaying(!isPlaying);
         }
+        showControlsAndStartTimer();
     };
 
     // Handle video events
@@ -72,6 +114,13 @@ export default function VideoDetailsScreen() {
         }
     };
 
+    // Start auto-hide timer when video starts playing
+    useEffect(() => {
+        if (isPlaying && showControls) {
+            startHideTimer();
+        }
+    }, [isPlaying, showControls, startHideTimer]);
+
     // Seek to specific time
     const seekTo = (time: number) => {
         videoRef.current?.seek(time);
@@ -88,18 +137,93 @@ export default function VideoDetailsScreen() {
         return getProgress() * progressBarWidth;
     };
 
+    // Animated styles
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
+
+    // Extracted components
+    const PlayButton = () => (
+        <Animated.View style={[styles.controlsOverlay, controlsAnimatedStyle]}>
+            <TouchableOpacity
+                style={styles.playButton}
+                onPress={handlePlayPause}
+                activeOpacity={0.8}
+            >
+                <MaterialIcons
+                    name={
+                        isFinished
+                            ? "replay"
+                            : isPlaying
+                            ? "pause"
+                            : "play-arrow"
+                    }
+                    size={64}
+                    color="white"
+                />
+            </TouchableOpacity>
+        </Animated.View>
+    );
+
+    const ProgressBar = () => (
+        <Animated.View
+            style={[styles.progressBarContainer, controlsAnimatedStyle]}
+        >
+            <TouchableOpacity
+                style={styles.progressBarBackground}
+                onPress={handleProgressBarPress}
+                activeOpacity={0.8}
+            >
+                <View
+                    style={[
+                        styles.progressBarFill,
+                        { width: getThumbPosition() },
+                    ]}
+                />
+            </TouchableOpacity>
+            <PanGestureHandler
+                onGestureEvent={handleThumbDrag}
+                onHandlerStateChange={(event) => {
+                    const { state } = event.nativeEvent;
+                    if (state === 2) {
+                        // BEGAN
+                        handleThumbDragStart();
+                    } else if (state === 5) {
+                        // END
+                        handleThumbDragEnd();
+                    }
+                }}
+            >
+                <View
+                    style={[
+                        styles.progressThumb,
+                        {
+                            transform: [
+                                {
+                                    translateX: getThumbPosition(),
+                                },
+                            ],
+                        },
+                    ]}
+                />
+            </PanGestureHandler>
+        </Animated.View>
+    );
+
     // Handle progress bar tap
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
         const progress = Math.max(0, Math.min(locationX / progressBarWidth, 1));
         const newTime = progress * duration;
         seekTo(newTime);
+        showControlsAndStartTimer();
     };
 
     // Handle thumb drag start
     const handleThumbDragStart = () => {
         setIsSeeking(true);
         setDragStartTime(currentTime);
+        showControlsAndStartTimer();
     };
 
     // Handle thumb drag
@@ -131,7 +255,11 @@ export default function VideoDetailsScreen() {
             />
 
             {videoSource ? (
-                <View style={styles.videoContainer}>
+                <TouchableOpacity
+                    style={styles.videoContainer}
+                    onPress={showControlsAndStartTimer}
+                    activeOpacity={1}
+                >
                     <Video
                         ref={videoRef}
                         source={videoSource}
@@ -145,69 +273,9 @@ export default function VideoDetailsScreen() {
                         onProgress={handleVideoProgress}
                     />
 
-                    {/* Custom Controls Overlay */}
-                    <View style={styles.controlsOverlay}>
-                        <TouchableOpacity
-                            style={styles.playButton}
-                            onPress={handlePlayPause}
-                            activeOpacity={0.8}
-                        >
-                            <MaterialIcons
-                                name={
-                                    isFinished
-                                        ? "replay"
-                                        : isPlaying
-                                        ? "pause"
-                                        : "play-arrow"
-                                }
-                                size={64}
-                                color="white"
-                            />
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* YouTube-style Progress Bar */}
-                    <View style={styles.progressBarContainer}>
-                        <TouchableOpacity
-                            style={styles.progressBarBackground}
-                            onPress={handleProgressBarPress}
-                            activeOpacity={0.8}
-                        >
-                            <View
-                                style={[
-                                    styles.progressBarFill,
-                                    { width: getThumbPosition() },
-                                ]}
-                            />
-                        </TouchableOpacity>
-                        <PanGestureHandler
-                            onGestureEvent={handleThumbDrag}
-                            onHandlerStateChange={(event) => {
-                                const { state } = event.nativeEvent;
-                                if (state === 2) {
-                                    // BEGAN
-                                    handleThumbDragStart();
-                                } else if (state === 5) {
-                                    // END
-                                    handleThumbDragEnd();
-                                }
-                            }}
-                        >
-                            <View
-                                style={[
-                                    styles.progressThumb,
-                                    {
-                                        transform: [
-                                            {
-                                                translateX: getThumbPosition(),
-                                            },
-                                        ],
-                                    },
-                                ]}
-                            />
-                        </PanGestureHandler>
-                    </View>
-                </View>
+                    <PlayButton />
+                    <ProgressBar />
+                </TouchableOpacity>
             ) : (
                 <View style={styles.placeholderContainer}>
                     <Text style={styles.placeholderText}>
