@@ -28,7 +28,7 @@ export default function VideoDetailsScreen() {
 
     // Progress bar animation values
     const screenWidth = Dimensions.get("window").width;
-    const progressBarWidth = screenWidth - 80; // Account for padding and time labels
+    const progressBarWidth = screenWidth; // Full screen width
 
     // Use placeholder video for testing, or you can implement logic to get actual video URL
     const videoSource =
@@ -86,13 +86,6 @@ export default function VideoDetailsScreen() {
     // Calculate thumb position
     const getThumbPosition = () => {
         return getProgress() * progressBarWidth;
-    };
-
-    // Format time helper
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
     // Handle progress bar tap
@@ -173,55 +166,46 @@ export default function VideoDetailsScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Progress Bar */}
-                    <View style={styles.progressContainer}>
-                        <Text style={styles.timeText}>
-                            {formatTime(currentTime)}
-                        </Text>
-                        <View style={styles.progressBarWrapper}>
-                            <TouchableOpacity
-                                style={styles.progressBarBackground}
-                                onPress={handleProgressBarPress}
-                                activeOpacity={0.8}
-                            >
-                                <View
-                                    style={[
-                                        styles.progressBarFill,
-                                        { width: getThumbPosition() },
-                                    ]}
-                                />
-                            </TouchableOpacity>
-                            <PanGestureHandler
-                                onGestureEvent={handleThumbDrag}
-                                onHandlerStateChange={(event) => {
-                                    const { state } = event.nativeEvent;
-                                    if (state === 2) {
-                                        // BEGAN
-                                        handleThumbDragStart();
-                                    } else if (state === 5) {
-                                        // END
-                                        handleThumbDragEnd();
-                                    }
-                                }}
-                            >
-                                <View
-                                    style={[
-                                        styles.progressThumb,
-                                        {
-                                            transform: [
-                                                {
-                                                    translateX:
-                                                        getThumbPosition(),
-                                                },
-                                            ],
-                                        },
-                                    ]}
-                                />
-                            </PanGestureHandler>
-                        </View>
-                        <Text style={styles.timeText}>
-                            {formatTime(duration)}
-                        </Text>
+                    {/* YouTube-style Progress Bar */}
+                    <View style={styles.progressBarContainer}>
+                        <TouchableOpacity
+                            style={styles.progressBarBackground}
+                            onPress={handleProgressBarPress}
+                            activeOpacity={0.8}
+                        >
+                            <View
+                                style={[
+                                    styles.progressBarFill,
+                                    { width: getThumbPosition() },
+                                ]}
+                            />
+                        </TouchableOpacity>
+                        <PanGestureHandler
+                            onGestureEvent={handleThumbDrag}
+                            onHandlerStateChange={(event) => {
+                                const { state } = event.nativeEvent;
+                                if (state === 2) {
+                                    // BEGAN
+                                    handleThumbDragStart();
+                                } else if (state === 5) {
+                                    // END
+                                    handleThumbDragEnd();
+                                }
+                            }}
+                        >
+                            <View
+                                style={[
+                                    styles.progressThumb,
+                                    {
+                                        transform: [
+                                            {
+                                                translateX: getThumbPosition(),
+                                            },
+                                        ],
+                                    },
+                                ]}
+                            />
+                        </PanGestureHandler>
                     </View>
                 </View>
             ) : (
@@ -287,63 +271,44 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
-    progressContainer: {
+    progressBarContainer: {
         position: "absolute",
-        bottom: 20,
-        left: 20,
-        right: 20,
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 6,
-    },
-    timeText: {
-        color: "white",
-        fontSize: 12,
-        fontWeight: "500",
-        minWidth: 35,
-        textAlign: "center",
-    },
-    progressBarWrapper: {
-        flex: 1,
-        marginHorizontal: 12,
-        height: 20,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 4,
         justifyContent: "center",
     },
     progressBarBackground: {
         height: 4,
         backgroundColor: "rgba(255, 255, 255, 0.3)",
-        borderRadius: 2,
         position: "relative",
     },
     progressBarFill: {
         height: 4,
         backgroundColor: "#FF0000",
-        borderRadius: 2,
         position: "absolute",
         left: 0,
         top: 0,
     },
     progressThumb: {
         position: "absolute",
-        width: 16,
-        height: 16,
-        borderRadius: 8,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
         backgroundColor: "#FF0000",
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: "white",
-        top: -6,
-        left: -8,
+        top: -4,
+        left: -6,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
             height: 1,
         },
         shadowOpacity: 0.3,
-        shadowRadius: 2,
-        elevation: 3,
+        shadowRadius: 1,
+        elevation: 2,
     },
     placeholderContainer: {
         width: "100%",
