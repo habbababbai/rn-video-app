@@ -10,6 +10,7 @@ import PauseIcon from "@/assets/images/svg/pause.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
 import PlayIcon from "@/assets/images/svg/play.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
+import VideoNotes from "@/components/VideoNotes";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
@@ -158,11 +159,7 @@ export default function VideoDetailsScreen() {
     };
 
     const NotesTab = () => (
-        <View style={styles.notesContainer}>
-            <Text style={styles.notesText}>
-                No notes available for this video.
-            </Text>
-        </View>
+        <VideoNotes videoId={videoId} currentVideoTime={currentTime} />
     );
 
     // Auto-hide controls
@@ -548,7 +545,7 @@ export default function VideoDetailsScreen() {
                 <Text numberOfLines={1} style={styles.title}>
                     {shouldShowRealData
                         ? videoDetails.snippet.title
-                        : "Broadchurch - Season 1 Episode 1"}
+                        : "Placeholder Video Name"}
                 </Text>
                 <View style={styles.channelDetailsContainer}>
                     <View style={styles.accountIconContainer}>
@@ -609,7 +606,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         alignSelf: "flex-start",
         width: "100%",
-        paddingTop: hp(15),
+        paddingTop: spacing.xs,
     },
     channelName: {
         fontFamily: fonts.poppinsBold,
@@ -623,11 +620,11 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
         borderBottomWidth: 1,
         borderBottomColor: colors.gray.light,
-        marginTop: hp(20),
+        paddingTop: spacing.xs,
     },
     tabButton: {
         flex: 1,
-        paddingVertical: hp(15),
+        paddingVertical: spacing.xs,
         alignItems: "center",
         borderBottomWidth: 2,
         borderBottomColor: "transparent",

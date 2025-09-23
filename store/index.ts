@@ -1,28 +1,30 @@
-import {configureStore, combineReducers} from '@reduxjs/toolkit';
-import {persistStore, persistReducer} from 'redux-persist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import authReducer from './slices/authSlice';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { persistReducer, persistStore } from "redux-persist";
+import authReducer from "./slices/authSlice";
+import videoNotesReducer from "./slices/videoNotesSlice";
 
 const persistConfig = {
-  key: 'root',
-  storage: AsyncStorage,
-  whitelist: ['auth'], // Only persist auth state
+    key: "root",
+    storage: AsyncStorage,
+    whitelist: ["auth", "videoNotes"], // Persist auth and video notes
 };
 
 const rootReducer = combineReducers({
-  auth: authReducer,
+    auth: authReducer,
+    videoNotes: videoNotesReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
-  reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-      },
-    }),
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: {
+                ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
+            },
+        }),
 });
 
 export const persistor = persistStore(store);

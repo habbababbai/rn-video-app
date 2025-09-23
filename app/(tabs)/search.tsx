@@ -108,24 +108,27 @@ export default function SearchScreen() {
     };
 
     const renderPlaceholderVideo = () => (
-        <TouchableWithoutFeedback onPress={() => {}}>
+        <TouchableWithoutFeedback
+            onPress={() =>
+                router.push("/video-details?videoId=placeholder-local-tab")
+            }
+        >
             <View style={styles.placeholderVideoItem}>
                 <View style={styles.placeholderThumbnail}>
                     <Text style={styles.placeholderText}>Local Tab</Text>
                 </View>
-                <View style={styles.placeholderVideoInfo}>
-                    <Text
-                        style={styles.placeholderVideoTitle}
-                        numberOfLines={2}
-                    >
+                <View style={styles.videoInfo}>
+                    <Text style={styles.channelName} numberOfLines={1}>
+                        Local Channel
+                    </Text>
+                    <Text style={styles.videoTitle} numberOfLines={2}>
                         Local Tab - Test Video
                     </Text>
-                    <Text
-                        style={styles.placeholderVideoUploadDate}
-                        numberOfLines={1}
-                    >
-                        {new Date().toLocaleDateString()}
-                    </Text>
+                    <View style={styles.uploadDateContainer}>
+                        <Text style={styles.videoUploadDate} numberOfLines={1}>
+                            {new Date().toLocaleDateString()}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </TouchableWithoutFeedback>
@@ -507,10 +510,11 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     placeholderVideoItem: {
-        width: "100%",
-        marginBottom: hp(12),
-        overflow: "hidden",
-        shadowColor: "#000",
+        width: wp(345),
+        backgroundColor: colors.white,
+        marginBottom: hp(15),
+        borderRadius: fp(12),
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -518,8 +522,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3.84,
         elevation: 5,
-        borderRadius: fp(16),
-        backgroundColor: colors.white,
+        overflow: "hidden",
     },
     placeholderThumbnail: {
         width: "100%",
@@ -534,23 +537,5 @@ const styles = StyleSheet.create({
         fontSize: fp(16),
         color: colors.white,
         fontWeight: "600",
-    },
-    placeholderVideoInfo: {
-        padding: hp(12),
-    },
-    placeholderVideoTitle: {
-        fontFamily: fonts.poppinsMedium,
-        fontSize: fp(14),
-        fontWeight: "500",
-        color: colors.primary,
-        lineHeight: hp(18),
-        letterSpacing: wp(0.5),
-        marginBottom: hp(4),
-    },
-    placeholderVideoUploadDate: {
-        fontFamily: fonts.poppins,
-        fontSize: fp(12),
-        color: colors.primary,
-        letterSpacing: wp(0.5),
     },
 });
