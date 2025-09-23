@@ -1,6 +1,7 @@
 import { colors } from "@/constants/colors";
 import { loginAsGuest } from "@/store/slices/authSlice";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
     Linking,
@@ -35,6 +36,7 @@ export default function LoginScreen() {
 
     return (
         <View style={styles.container}>
+            <StatusBar style="light" />
             <SafeAreaView style={styles.content}>
                 <YTIcon style={{ marginTop: hp(45) }} />
                 <AppIcon />

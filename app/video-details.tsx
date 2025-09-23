@@ -10,19 +10,22 @@ import PauseIcon from "@/assets/images/svg/pause.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
 import PlayIcon from "@/assets/images/svg/play.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
+import VideoNotes from "@/components/VideoNotes";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
+import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
-    StatusBar,
+    Keyboard,
     StyleSheet,
     Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from "react-native";
 import {
@@ -41,7 +44,6 @@ export default function VideoDetailsScreen() {
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
     const router = useRouter();
 
-    // Fetch video details from YouTube API
     const {
         data: videoDetails,
         isLoading,
@@ -58,8 +60,44 @@ export default function VideoDetailsScreen() {
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
+    const keyboardHeight = useSharedValue(0);
+    const lastProgressUpdateRef = useRef(0);
 
-    // Tab content components
+    useEffect(() => {
+        const keyboardWillShow = Keyboard.addListener(
+            "keyboardWillShow",
+            (event) => {
+                keyboardHeight.value = withTiming(event.endCoordinates.height, {
+                    duration: event.duration || 250,
+                });
+            }
+        );
+
+        const keyboardWillHide = Keyboard.addListener(
+            "keyboardWillHide",
+            (event) => {
+                keyboardHeight.value = withTiming(0, {
+                    duration: event.duration || 250,
+                });
+            }
+        );
+
+        return () => {
+            keyboardWillShow.remove();
+            keyboardWillHide.remove();
+        };
+    }, [keyboardHeight]);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: -keyboardHeight.value }],
+        };
+    });
+
+    const dismissKeyboard = useCallback(() => {
+        Keyboard.dismiss();
+    }, []);
+
     const DetailsTab = () => {
         if (isLoading) {
             return (
@@ -158,20 +196,23 @@ export default function VideoDetailsScreen() {
     };
 
     const NotesTab = () => (
-        <View style={styles.notesContainer}>
-            <Text style={styles.notesText}>
-                No notes available for this video.
-            </Text>
-        </View>
+        <VideoNotes
+            videoId={videoId}
+            currentVideoTime={currentTime}
+            onBeginInputFocus={() => {
+                if (isPlaying) {
+                    setIsPlaying(false);
+                }
+                showControlsAndStartTimer();
+            }}
+        />
     );
 
-    // Auto-hide controls
     const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
     );
     const controlsOpacity = useSharedValue(1);
 
-    // Auto-hide timer
     const startHideTimer = useCallback(() => {
         if (hideControlsTimeoutRef.current) {
             clearTimeout(hideControlsTimeoutRef.current);
@@ -195,7 +236,6 @@ export default function VideoDetailsScreen() {
             if (hideControlsTimeoutRef.current) {
                 clearTimeout(hideControlsTimeoutRef.current);
             }
-            // Restore orientation when component unmounts
             ScreenOrientation.unlockAsync();
         };
     }, []);
@@ -203,10 +243,8 @@ export default function VideoDetailsScreen() {
     const screenWidth = Dimensions.get("window").width;
     const progressBarWidth = screenWidth; // Full screen width
 
-    // Video source logic - always use local placeholder video
     const videoSource = require("@/assets/videos/broadchurch.mp4");
 
-    // Determine if we should show real YouTube data or placeholder data
     const shouldShowRealData =
         videoId !== "placeholder-local-tab" && !error && videoDetails;
 
@@ -239,7 +277,14 @@ export default function VideoDetailsScreen() {
     };
 
     const handleVideoProgress = (data: any) => {
-        setCurrentTime(data.currentTime);
+        const current = data.currentTime as number;
+        if (
+            current - lastProgressUpdateRef.current >= 0.25 ||
+            current < lastProgressUpdateRef.current
+        ) {
+            lastProgressUpdateRef.current = current;
+            setCurrentTime(current);
+        }
     };
 
     useEffect(() => {
@@ -253,14 +298,12 @@ export default function VideoDetailsScreen() {
         setCurrentTime(time);
     };
 
-    // Seek backward by 5 seconds
     const seekBackward = () => {
         const newTime = Math.max(0, currentTime - 5);
         seekTo(newTime);
         showControlsAndStartTimer();
     };
 
-    // Seek forward by 5 seconds
     const seekForward = () => {
         const newTime = Math.min(duration, currentTime + 5);
         seekTo(newTime);
@@ -280,7 +323,10 @@ export default function VideoDetailsScreen() {
     }));
 
     const PlayButton = () => (
-        <Animated.View style={[styles.controlsOverlay, controlsAnimatedStyle]}>
+        <Animated.View
+            style={[styles.controlsOverlay, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
+        >
             <View style={styles.controlsRow}>
                 <TouchableOpacity
                     style={styles.seekButton}
@@ -340,6 +386,7 @@ export default function VideoDetailsScreen() {
     const ProgressBar = () => (
         <Animated.View
             style={[styles.progressBarContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.progressBarBackground}
@@ -353,7 +400,6 @@ export default function VideoDetailsScreen() {
                         { width: getThumbPosition() },
                     ]}
                 />
-                {/* Red Thumb */}
                 <View
                     style={[
                         styles.progressBarThumb,
@@ -371,7 +417,10 @@ export default function VideoDetailsScreen() {
     };
 
     const TimerDisplay = () => (
-        <Animated.View style={[styles.timerContainer, controlsAnimatedStyle]}>
+        <Animated.View
+            style={[styles.timerContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
+        >
             <Text style={styles.timerText}>
                 {formatTime(currentTime)} / {formatTime(duration)}
             </Text>
@@ -381,6 +430,7 @@ export default function VideoDetailsScreen() {
     const BackButton = () => (
         <Animated.View
             style={[styles.backButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.backButton}
@@ -406,6 +456,7 @@ export default function VideoDetailsScreen() {
     const FullscreenButton = () => (
         <Animated.View
             style={[styles.fullscreenButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.fullscreenButton}
@@ -436,6 +487,7 @@ export default function VideoDetailsScreen() {
     const MuteButton = () => (
         <Animated.View
             style={[styles.muteButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.muteButton}
@@ -465,11 +517,11 @@ export default function VideoDetailsScreen() {
     const AirplayButton = () => (
         <Animated.View
             style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.airplayButton}
                 onPress={() => {
-                    // Airplay functionality
                     console.log("Airplay pressed");
                     showControlsAndStartTimer();
                 }}
@@ -490,107 +542,122 @@ export default function VideoDetailsScreen() {
     };
 
     return (
-        <GestureHandlerRootView
-            style={[styles.container, { paddingTop: insets.top }]}
+        <Animated.View
+            style={[
+                styles.container,
+                { paddingTop: insets.top },
+                animatedStyle,
+            ]}
         >
-            <Stack.Screen
-                options={{
-                    headerShown: false,
-                }}
-            />
-            <StatusBar barStyle="light-content" backgroundColor="black" />
-
-            {videoSource ? (
-                <TouchableOpacity
-                    style={[
-                        styles.videoContainer,
-                        isFullscreen && styles.fullscreenVideoContainer,
-                    ]}
-                    onPress={showControlsAndStartTimer}
-                    activeOpacity={1}
-                >
-                    <Video
-                        ref={videoRef}
-                        source={videoSource}
-                        style={styles.video}
-                        controls={false}
-                        resizeMode="contain"
-                        paused={!isPlaying}
-                        muted={isMuted}
-                        onError={handleVideoError}
-                        onLoad={handleVideoLoad}
-                        onEnd={handleVideoEnd}
-                        onProgress={handleVideoProgress}
+            <TouchableWithoutFeedback onPress={dismissKeyboard}>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                    <Stack.Screen
+                        options={{
+                            headerShown: false,
+                        }}
                     />
+                    <StatusBar style="light" />
 
-                    <PlayButton />
-                    <ProgressBar />
-                    <TimerDisplay />
-                    <BackButton />
-                    <AirplayButton />
-                    <MuteButton />
-                    <FullscreenButton />
-                </TouchableOpacity>
-            ) : (
-                <View style={styles.placeholderContainer}>
-                    <Text style={styles.placeholderText}>
-                        Video not available for ID: {videoId}
-                    </Text>
-                </View>
-            )}
+                    {videoSource ? (
+                        <TouchableOpacity
+                            style={[
+                                styles.videoContainer,
+                                isFullscreen && styles.fullscreenVideoContainer,
+                            ]}
+                            onPress={showControlsAndStartTimer}
+                            activeOpacity={1}
+                        >
+                            <Video
+                                ref={videoRef}
+                                source={videoSource}
+                                style={styles.video}
+                                controls={false}
+                                resizeMode="contain"
+                                paused={!isPlaying}
+                                muted={isMuted}
+                                progressUpdateInterval={500}
+                                onError={handleVideoError}
+                                onLoad={handleVideoLoad}
+                                onEnd={handleVideoEnd}
+                                onProgress={handleVideoProgress}
+                            />
 
-            <View
-                style={[
-                    styles.detailsContainer,
-                    isFullscreen && styles.fullscreenDetailsContainer,
-                ]}
-            >
-                <Text numberOfLines={1} style={styles.title}>
-                    {shouldShowRealData
-                        ? videoDetails.snippet.title
-                        : "Broadchurch - Season 1 Episode 1"}
-                </Text>
-                <View style={styles.channelDetailsContainer}>
-                    <View style={styles.accountIconContainer}>
-                        <PersonIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            fill="white"
-                        />
+                            <PlayButton />
+                            <ProgressBar />
+                            <TimerDisplay />
+                            <BackButton />
+                            <AirplayButton />
+                            <MuteButton />
+                            <FullscreenButton />
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={styles.placeholderContainer}>
+                            <Text style={styles.placeholderText}>
+                                Video not available for ID: {videoId}
+                            </Text>
+                        </View>
+                    )}
+
+                    <View
+                        style={[
+                            styles.detailsContainer,
+                            isFullscreen && styles.fullscreenDetailsContainer,
+                        ]}
+                    >
+                        <Text numberOfLines={1} style={styles.title}>
+                            {shouldShowRealData
+                                ? videoDetails.snippet.title
+                                : "Placeholder Video Name"}
+                        </Text>
+                        <View style={styles.channelDetailsContainer}>
+                            <View style={styles.accountIconContainer}>
+                                <PersonIcon
+                                    width={wp(24)}
+                                    height={hp(24)}
+                                    fill="white"
+                                />
+                            </View>
+                            <Text style={styles.channelName}>
+                                {shouldShowRealData
+                                    ? videoDetails.snippet.channelTitle
+                                    : "ITV Drama"}
+                            </Text>
+                        </View>
+
+                        <View style={styles.tabBar}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.tabButton,
+                                    activeTab === "details" &&
+                                        styles.activeTabButton,
+                                ]}
+                                onPress={() => setActiveTab("details")}
+                            >
+                                <Text style={[styles.tabText]}>Details</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.tabButton,
+                                    activeTab === "notes" &&
+                                        styles.activeTabButton,
+                                ]}
+                                onPress={() => setActiveTab("notes")}
+                            >
+                                <Text style={[styles.tabText]}>Notes</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.tabContent}>
+                            {activeTab === "details" ? (
+                                <DetailsTab />
+                            ) : (
+                                <NotesTab />
+                            )}
+                        </View>
                     </View>
-                    <Text style={styles.channelName}>
-                        {shouldShowRealData
-                            ? videoDetails.snippet.channelTitle
-                            : "ITV Drama"}
-                    </Text>
-                </View>
-
-                <View style={styles.tabBar}>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === "details" && styles.activeTabButton,
-                        ]}
-                        onPress={() => setActiveTab("details")}
-                    >
-                        <Text style={[styles.tabText]}>Details</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === "notes" && styles.activeTabButton,
-                        ]}
-                        onPress={() => setActiveTab("notes")}
-                    >
-                        <Text style={[styles.tabText]}>Notes</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.tabContent}>
-                    {activeTab === "details" ? <DetailsTab /> : <NotesTab />}
-                </View>
-            </View>
-        </GestureHandlerRootView>
+                </GestureHandlerRootView>
+            </TouchableWithoutFeedback>
+        </Animated.View>
     );
 }
 
@@ -609,7 +676,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         alignSelf: "flex-start",
         width: "100%",
-        paddingTop: hp(15),
+        paddingTop: spacing.xs,
     },
     channelName: {
         fontFamily: fonts.poppinsBold,
@@ -623,11 +690,11 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
         borderBottomWidth: 1,
         borderBottomColor: colors.gray.light,
-        marginTop: hp(20),
+        paddingTop: spacing.xs,
     },
     tabButton: {
         flex: 1,
-        paddingVertical: hp(15),
+        paddingVertical: spacing.xs,
         alignItems: "center",
         borderBottomWidth: 2,
         borderBottomColor: "transparent",
@@ -644,7 +711,6 @@ const styles = StyleSheet.create({
 
     tabContent: {
         flex: 1,
-        paddingHorizontal: wp(10),
         paddingTop: hp(15),
         width: "100%",
     },
@@ -729,7 +795,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -745,7 +811,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -840,7 +906,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -861,7 +927,7 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -882,7 +948,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -903,7 +969,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,

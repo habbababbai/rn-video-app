@@ -17,6 +17,7 @@ import {
     ActivityIndicator,
     FlatList,
     Image,
+    Keyboard,
     RefreshControl,
     StyleSheet,
     Text,
@@ -108,24 +109,27 @@ export default function SearchScreen() {
     };
 
     const renderPlaceholderVideo = () => (
-        <TouchableWithoutFeedback onPress={() => {}}>
+        <TouchableWithoutFeedback
+            onPress={() =>
+                router.push("/video-details?videoId=placeholder-local-tab")
+            }
+        >
             <View style={styles.placeholderVideoItem}>
                 <View style={styles.placeholderThumbnail}>
                     <Text style={styles.placeholderText}>Local Tab</Text>
                 </View>
-                <View style={styles.placeholderVideoInfo}>
-                    <Text
-                        style={styles.placeholderVideoTitle}
-                        numberOfLines={2}
-                    >
+                <View style={styles.videoInfo}>
+                    <Text style={styles.channelName} numberOfLines={1}>
+                        Local Channel
+                    </Text>
+                    <Text style={styles.videoTitle} numberOfLines={2}>
                         Local Tab - Test Video
                     </Text>
-                    <Text
-                        style={styles.placeholderVideoUploadDate}
-                        numberOfLines={1}
-                    >
-                        {new Date().toLocaleDateString()}
-                    </Text>
+                    <View style={styles.uploadDateContainer}>
+                        <Text style={styles.videoUploadDate} numberOfLines={1}>
+                            {new Date().toLocaleDateString()}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </TouchableWithoutFeedback>
@@ -230,91 +234,102 @@ export default function SearchScreen() {
         return null;
     };
 
+    const dismissKeyboard = useCallback(() => {
+        Keyboard.dismiss();
+    }, []);
+
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <View style={styles.header}>
-                <TouchableWithoutFeedback
-                    onPress={() => searchInputRef.current?.focus()}
-                >
-                    <View style={styles.searchContainer}>
-                        <SearchIcon style={styles.searchIcon} />
-                        <TextInput
-                            ref={searchInputRef}
-                            style={styles.searchInput}
-                            placeholder="Search videos or tap filter to sort"
-                            placeholderTextColor={colors.primary}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            onSubmitEditing={handleSearch}
-                            returnKeyType="search"
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            autoFocus={true}
-                        />
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <SafeAreaView style={styles.container} edges={["top"]}>
+                <TouchableWithoutFeedback onPress={() => {}}>
+                    <View style={styles.header}>
+                        <TouchableWithoutFeedback
+                            onPress={() => searchInputRef.current?.focus()}
+                        >
+                            <View style={styles.searchContainer}>
+                                <SearchIcon style={styles.searchIcon} />
+                                <TextInput
+                                    ref={searchInputRef}
+                                    style={styles.searchInput}
+                                    placeholder="Search videos or tap filter to sort"
+                                    placeholderTextColor={colors.primary}
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    onSubmitEditing={handleSearch}
+                                    returnKeyType="search"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    autoFocus={true}
+                                />
+                            </View>
+                        </TouchableWithoutFeedback>
+
+                        {searchTerm && allVideos.length > 0 && (
+                            <View style={styles.resultsHeader}>
+                                <Text style={styles.resultsCount}>
+                                    {(data?.pages?.[0] as any)?.pageInfo
+                                        ?.totalResults
+                                        ? `${(
+                                              data.pages[0] as any
+                                          ).pageInfo.totalResults.toLocaleString()} results found for `
+                                        : `${allVideos.length} videos found for `}
+                                    <Text style={styles.searchTermBold}>
+                                        &quot;{searchTerm}&quot;
+                                    </Text>
+                                </Text>
+                            </View>
+                        )}
+
+                        <TouchableOpacity
+                            style={styles.filterButton}
+                            onPress={() => setShowFilterModal(true)}
+                        >
+                            <Text style={styles.filterButtonText}>
+                                Sort by:{" "}
+                                <Text style={styles.sortOrderBold}>
+                                    {getSortOrderLabel(sortOrder)}
+                                </Text>
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </TouchableWithoutFeedback>
 
-                {searchTerm && allVideos.length > 0 && (
-                    <View style={styles.resultsHeader}>
-                        <Text style={styles.resultsCount}>
-                            {(data?.pages?.[0] as any)?.pageInfo?.totalResults
-                                ? `${(
-                                      data.pages[0] as any
-                                  ).pageInfo.totalResults.toLocaleString()} results found for `
-                                : `${allVideos.length} videos found for `}
-                            <Text style={styles.searchTermBold}>
-                                &quot;{searchTerm}&quot;
-                            </Text>
-                        </Text>
+                {searchTerm && allVideos.length > 0 ? (
+                    <>
+                        <FlatList
+                            data={allVideos}
+                            renderItem={renderVideoItem}
+                            keyExtractor={(item, index) =>
+                                `${item.id.videoId}-${index}`
+                            }
+                            contentContainerStyle={styles.listContainer}
+                            showsVerticalScrollIndicator={false}
+                            onEndReached={handleLoadMore}
+                            onEndReachedThreshold={0.5}
+                            ListFooterComponent={renderFooter}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={isLoading}
+                                    onRefresh={handleRefresh}
+                                    tintColor={colors.primary}
+                                    colors={[colors.primary]}
+                                />
+                            }
+                        />
+                    </>
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        {renderEmptyState()}
                     </View>
                 )}
-
-                <TouchableOpacity
-                    style={styles.filterButton}
-                    onPress={() => setShowFilterModal(true)}
-                >
-                    <Text style={styles.filterButtonText}>
-                        Sort by:{" "}
-                        <Text style={styles.sortOrderBold}>
-                            {getSortOrderLabel(sortOrder)}
-                        </Text>
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            {searchTerm && allVideos.length > 0 ? (
-                <>
-                    <FlatList
-                        data={allVideos}
-                        renderItem={renderVideoItem}
-                        keyExtractor={(item, index) =>
-                            `${item.id.videoId}-${index}`
-                        }
-                        contentContainerStyle={styles.listContainer}
-                        showsVerticalScrollIndicator={false}
-                        onEndReached={handleLoadMore}
-                        onEndReachedThreshold={0.5}
-                        ListFooterComponent={renderFooter}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={isLoading}
-                                onRefresh={handleRefresh}
-                                tintColor={colors.primary}
-                                colors={[colors.primary]}
-                            />
-                        }
-                    />
-                </>
-            ) : (
-                <View style={styles.emptyContainer}>{renderEmptyState()}</View>
-            )}
-            <SortModal
-                visible={showFilterModal}
-                onClose={() => setShowFilterModal(false)}
-                currentSortOrder={sortOrder}
-                onSortChange={handleSortChange}
-            />
-        </SafeAreaView>
+                <SortModal
+                    visible={showFilterModal}
+                    onClose={() => setShowFilterModal(false)}
+                    currentSortOrder={sortOrder}
+                    onSortChange={handleSortChange}
+                />
+            </SafeAreaView>
+        </TouchableWithoutFeedback>
     );
 }
 
@@ -507,10 +522,11 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     placeholderVideoItem: {
-        width: "100%",
-        marginBottom: hp(12),
-        overflow: "hidden",
-        shadowColor: "#000",
+        width: wp(345),
+        backgroundColor: colors.white,
+        marginBottom: hp(15),
+        borderRadius: fp(12),
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -518,8 +534,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3.84,
         elevation: 5,
-        borderRadius: fp(16),
-        backgroundColor: colors.white,
+        overflow: "hidden",
     },
     placeholderThumbnail: {
         width: "100%",
@@ -534,23 +549,5 @@ const styles = StyleSheet.create({
         fontSize: fp(16),
         color: colors.white,
         fontWeight: "600",
-    },
-    placeholderVideoInfo: {
-        padding: hp(12),
-    },
-    placeholderVideoTitle: {
-        fontFamily: fonts.poppinsMedium,
-        fontSize: fp(14),
-        fontWeight: "500",
-        color: colors.primary,
-        lineHeight: hp(18),
-        letterSpacing: wp(0.5),
-        marginBottom: hp(4),
-    },
-    placeholderVideoUploadDate: {
-        fontFamily: fonts.poppins,
-        fontSize: fp(12),
-        color: colors.primary,
-        letterSpacing: wp(0.5),
     },
 });
