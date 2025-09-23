@@ -139,22 +139,28 @@ export default function SearchScreen() {
         >
             <View style={styles.videoItem}>
                 <Image
-                    source={{ uri: item.snippet.thumbnails.medium.url }}
+                    source={{
+                        uri:
+                            item.snippet.thumbnails.high?.url ||
+                            item.snippet.thumbnails.medium.url,
+                    }}
                     style={styles.thumbnail}
                     resizeMode="cover"
                 />
                 <View style={styles.videoInfo}>
+                    <Text style={styles.channelName} numberOfLines={1}>
+                        {item.snippet.channelTitle}
+                    </Text>
                     <Text style={styles.videoTitle} numberOfLines={2}>
                         {item.snippet.title}
                     </Text>
-                    <Text style={styles.channelTitle} numberOfLines={1}>
-                        {item.snippet.channelTitle}
-                    </Text>
-                    <Text style={styles.videoUploadDate} numberOfLines={1}>
-                        {new Date(
-                            item.snippet.publishedAt
-                        ).toLocaleDateString()}
-                    </Text>
+                    <View style={styles.uploadDateContainer}>
+                        <Text style={styles.videoUploadDate} numberOfLines={1}>
+                            {new Date(
+                                item.snippet.publishedAt
+                            ).toLocaleDateString()}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </TouchableWithoutFeedback>
@@ -355,10 +361,8 @@ const styles = StyleSheet.create({
         paddingTop: hp(10),
     },
     videoItem: {
-        flexDirection: "row",
         backgroundColor: colors.white,
         marginBottom: hp(15),
-        padding: wp(12),
         borderRadius: fp(12),
         shadowColor: colors.black,
         shadowOffset: {
@@ -368,38 +372,43 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3.84,
         elevation: 5,
+        overflow: "hidden",
     },
     thumbnail: {
-        width: wp(120),
-        height: hp(90),
-        borderRadius: fp(8),
-        marginRight: wp(12),
+        width: "100%",
+        height: hp(200),
+        borderRadius: fp(16),
     },
     videoInfo: {
-        flex: 1,
-        justifyContent: "space-between",
+        padding: wp(16),
     },
     videoTitle: {
-        fontFamily: fonts.poppinsMedium,
-        fontSize: fp(14),
-        fontWeight: "600",
-        color: colors.primary,
-        lineHeight: hp(20),
-        letterSpacing: wp(0.5),
-        marginBottom: hp(4),
-    },
-    channelTitle: {
         fontFamily: fonts.poppins,
+        fontSize: fp(15),
+        fontWeight: "400",
+        color: colors.primary,
+        lineHeight: hp(12),
+        letterSpacing: wp(0.5),
+        paddingVertical: spacing.xs,
+    },
+    channelName: {
+        fontFamily: fonts.poppinsBold,
         fontSize: fp(12),
+        fontWeight: "700",
         color: colors.primary,
         letterSpacing: wp(0.5),
-        marginBottom: hp(2),
+        marginBottom: spacing.xs,
+    },
+    uploadDateContainer: {
+        alignItems: "flex-end",
     },
     videoUploadDate: {
         fontFamily: fonts.poppins,
         fontSize: fp(10),
         color: colors.primary,
         letterSpacing: wp(0.5),
+        opacity: 0.7,
+        fontWeight: "400",
     },
     emptyContainer: {
         flex: 1,
