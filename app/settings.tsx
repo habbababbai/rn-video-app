@@ -2,6 +2,7 @@ import LeftArrowIcon from "@/assets/images/svg/arrow-left.svg";
 import BellIcon from "@/assets/images/svg/bell.svg";
 import ClockIcon from "@/assets/images/svg/clock.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
+import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { RootState } from "@/store";
@@ -20,7 +21,6 @@ import {
     Platform,
     Pressable,
     StyleSheet,
-    Switch,
     Text,
     View,
 } from "react-native";
@@ -169,25 +169,27 @@ export default function SettingsScreen() {
                         Repeat everyday at:
                     </Text>
 
-                    <ClockIcon width={fp(24)} height={fp(24)} />
+                    <View style={styles.timePickerContainer}>
+                        <ClockIcon width={fp(24)} height={fp(24)} />
 
-                    <DateTimePicker
-                        value={time}
-                        mode="time"
-                        display="default"
-                        onChange={onChangeTime}
-                    />
+                        <DateTimePicker
+                            value={time}
+                            mode="time"
+                            display="default"
+                            onChange={onChangeTime}
+                            style={styles.datePicker}
+                            {...(Platform.OS === "ios"
+                                ? {
+                                      themeVariant: "light",
+                                      textColor: colors.primary,
+                                  }
+                                : {})}
+                        />
+                    </View>
 
-                    <Switch
+                    <ToggleSwitch
                         value={reminderEnabled}
                         onValueChange={handleToggleReminder}
-                        thumbColor={
-                            reminderEnabled ? colors.white : colors.white
-                        }
-                        trackColor={{
-                            false: colors.gray.light,
-                            true: colors.primary,
-                        }}
                     />
                 </View>
 
@@ -263,6 +265,16 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         gap: wp(8),
     },
+    timeText: {
+        fontFamily: fonts.poppins,
+        fontSize: fp(12),
+        letterSpacing: wp(0.5),
+        fontWeight: "400",
+        color: colors.primary,
+    },
+    datePicker: {
+        backgroundColor: colors.white,
+    },
     reminderLabel: {
         fontFamily: fonts.poppins,
         fontSize: fp(12),
@@ -289,6 +301,10 @@ const styles = StyleSheet.create({
         fontSize: fp(12),
         color: colors.primary,
         letterSpacing: wp(0.5),
+    },
+    timePickerContainer: {
+        flexDirection: "row",
+        alignItems: "center",
     },
     helperText: {
         marginTop: hp(36),
