@@ -12,6 +12,7 @@ import PlayIcon from "@/assets/images/svg/play.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
+import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -24,7 +25,10 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+    GestureHandlerRootView,
+    ScrollView,
+} from "react-native-gesture-handler";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -36,6 +40,13 @@ import Video, { VideoRef } from "react-native-video";
 export default function VideoDetailsScreen() {
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
     const router = useRouter();
+
+    // Fetch video details from YouTube API
+    const {
+        data: videoDetails,
+        isLoading,
+        error,
+    } = useYouTubeVideoDetails(videoId || "");
     const videoRef = useRef<VideoRef>(null);
     const insets = useSafeAreaInsets();
 
@@ -49,27 +60,102 @@ export default function VideoDetailsScreen() {
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
 
     // Tab content components
-    const DetailsTab = () => (
-        <View style={styles.descriptionContainer}>
-            <Text style={styles.descriptionTitle}>Description</Text>
-            <Text style={styles.descriptionText}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-            </Text>
-            <Text style={styles.descriptionTitle}>Statistics</Text>
-            <View style={styles.statisticsContainer}>
-                <View style={styles.statisticsItem}>
-                    <ViewsIcon width={wp(20)} height={hp(20)} stroke="white" />
-                    <Text style={styles.statisticsText}>0 views</Text>
+    const DetailsTab = () => {
+        if (isLoading) {
+            return (
+                <View style={styles.descriptionContainer}>
+                    <Text style={styles.descriptionText}>
+                        Loading video details...
+                    </Text>
                 </View>
-                <View style={styles.statisticsItem}>
-                    <LikesIcon width={wp(20)} height={hp(20)} stroke="white" />
-                    <Text style={styles.statisticsText}>0 likes</Text>
+            );
+        }
+
+        if (error || !videoDetails) {
+            return (
+                <View style={styles.descriptionContainer}>
+                    <Text style={styles.descriptionTitle}>Description</Text>
+                    <Text style={styles.descriptionText} selectable={true}>
+                        {videoId === "placeholder-local-tab"
+                            ? "This is a placeholder video for testing purposes. Broadchurch is a British crime drama television series created and written by Chris Chibnall."
+                            : "Failed to load video details. Please try again."}
+                    </Text>
+                    <Text style={styles.descriptionTitle}>Statistics</Text>
+                    <View style={styles.statisticsContainer}>
+                        <View style={styles.statisticsItem}>
+                            <ViewsIcon
+                                width={wp(20)}
+                                height={hp(20)}
+                                stroke="white"
+                            />
+                            <Text style={styles.statisticsText}>
+                                {videoId === "placeholder-local-tab"
+                                    ? "1.2M views"
+                                    : "0 views"}
+                            </Text>
+                        </View>
+                        <View style={styles.statisticsItem}>
+                            <LikesIcon
+                                width={wp(20)}
+                                height={hp(20)}
+                                stroke="white"
+                            />
+                            <Text style={styles.statisticsText}>
+                                {videoId === "placeholder-local-tab"
+                                    ? "45K likes"
+                                    : "0 likes"}
+                            </Text>
+                        </View>
+                    </View>
                 </View>
-            </View>
-        </View>
-    );
+            );
+        }
+
+        const formatNumber = (num: string) => {
+            const number = parseInt(num);
+            if (number >= 1000000) {
+                return `${(number / 1000000).toFixed(1)}M`;
+            } else if (number >= 1000) {
+                return `${(number / 1000).toFixed(1)}K`;
+            }
+            return number.toString();
+        };
+
+        return (
+            <ScrollView style={styles.descriptionContainer}>
+                <Text style={styles.descriptionTitle}>Description</Text>
+                <Text style={styles.descriptionText} selectable={true}>
+                    {videoDetails.snippet.description ||
+                        "No description available."}
+                </Text>
+                <Text style={styles.descriptionTitle}>Statistics</Text>
+                <View style={styles.statisticsContainer}>
+                    <View style={styles.statisticsItem}>
+                        <ViewsIcon
+                            width={wp(20)}
+                            height={hp(20)}
+                            stroke="white"
+                        />
+                        <Text style={styles.statisticsText}>
+                            {formatNumber(videoDetails.statistics.viewCount)}{" "}
+                            views
+                        </Text>
+                    </View>
+                    <View style={styles.statisticsItem}>
+                        <LikesIcon
+                            width={wp(20)}
+                            height={hp(20)}
+                            stroke="white"
+                        />
+                        <Text style={styles.statisticsText}>
+                            {formatNumber(videoDetails.statistics.likeCount)}{" "}
+                            likes
+                        </Text>
+                    </View>
+                </View>
+            </ScrollView>
+        );
+    };
 
     const NotesTab = () => (
         <View style={styles.notesContainer}>
@@ -117,7 +203,12 @@ export default function VideoDetailsScreen() {
     const screenWidth = Dimensions.get("window").width;
     const progressBarWidth = screenWidth; // Full screen width
 
+    // Video source logic - always use local placeholder video
     const videoSource = require("@/assets/videos/broadchurch.mp4");
+
+    // Determine if we should show real YouTube data or placeholder data
+    const shouldShowRealData =
+        videoId !== "placeholder-local-tab" && !error && videoDetails;
 
     const handlePlayPause = () => {
         if (isFinished) {
@@ -455,9 +546,9 @@ export default function VideoDetailsScreen() {
                 ]}
             >
                 <Text numberOfLines={1} style={styles.title}>
-                    Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit Sed
-                    Do Eiusmod Tempor Incididunt Ut Labore Et Dolore Magna
-                    Aliqua{" "}
+                    {shouldShowRealData
+                        ? videoDetails.snippet.title
+                        : "Broadchurch - Season 1 Episode 1"}
                 </Text>
                 <View style={styles.channelDetailsContainer}>
                     <View style={styles.accountIconContainer}>
@@ -467,7 +558,11 @@ export default function VideoDetailsScreen() {
                             fill="white"
                         />
                     </View>
-                    <Text style={styles.channelName}>Channel Name</Text>
+                    <Text style={styles.channelName}>
+                        {shouldShowRealData
+                            ? videoDetails.snippet.channelTitle
+                            : "ITV Drama"}
+                    </Text>
                 </View>
 
                 <View style={styles.tabBar}>
@@ -551,6 +646,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: wp(10),
         paddingTop: hp(15),
+        width: "100%",
     },
     descriptionContainer: {
         flex: 1,

@@ -1,4 +1,4 @@
-import { fetchVideosBySearchTerm, YouTubeVideo } from "@/services/youtubeApi";
+import { fetchVideosBySearchTerm, fetchVideoDetails, YouTubeVideo, YouTubeVideoDetails } from "@/services/youtubeApi";
 import { useQuery } from "@tanstack/react-query";
 
 // Query keys for caching
@@ -12,6 +12,8 @@ export const youtubeQueryKeys = {
             searchTerm,
             maxResults,
         ] as const,
+    videoDetails: (videoId: string) =>
+        [...youtubeQueryKeys.videos(), "details", videoId] as const,
 };
 
 export const useYouTubeVideosBySearch = (
@@ -25,5 +27,15 @@ export const useYouTubeVideosBySearch = (
         // Use global defaults for extended caching
         retry: 1, // Reduce retries to save quota
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Faster retry
+    });
+};
+
+export const useYouTubeVideoDetails = (videoId: string) => {
+    return useQuery<YouTubeVideoDetails, Error>({
+        queryKey: youtubeQueryKeys.videoDetails(videoId),
+        queryFn: () => fetchVideoDetails(videoId),
+        enabled: !!videoId && videoId !== "placeholder-local-tab",
+        retry: 1,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     });
 };

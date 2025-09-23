@@ -37,6 +37,38 @@ export interface YouTubeVideo {
     };
 }
 
+export interface YouTubeVideoDetails {
+    id: string;
+    snippet: {
+        title: string;
+        description: string;
+        channelTitle: string;
+        publishedAt: string;
+        thumbnails: {
+            default: {
+                url: string;
+                width: number;
+                height: number;
+            };
+            medium: {
+                url: string;
+                width: number;
+                height: number;
+            };
+            high: {
+                url: string;
+                width: number;
+                height: number;
+            };
+        };
+    };
+    statistics: {
+        viewCount: string;
+        likeCount: string;
+        commentCount: string;
+    };
+}
+
 export interface YouTubeSearchResponse {
     items: YouTubeVideo[];
     nextPageToken?: string;
@@ -44,6 +76,10 @@ export interface YouTubeSearchResponse {
         totalResults: number;
         resultsPerPage: number;
     };
+}
+
+export interface YouTubeVideoDetailsResponse {
+    items: YouTubeVideoDetails[];
 }
 
 /**
@@ -92,4 +128,60 @@ export const fetchVideosBySearchTerm = async (
         console.error("- Error status:", error.response?.status);
         throw error;
     }
+};
+
+/**
+ * Fetch detailed video information including statistics
+ * @param videoId - The YouTube video ID
+ * @returns Promise<YouTubeVideoDetails> - Detailed video information
+ */
+export const fetchVideoDetails = async (
+    videoId: string
+): Promise<YouTubeVideoDetails> => {
+    try {
+        if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY_HERE") {
+            throw new Error(
+                "YouTube API key not configured. Please set EXPO_PUBLIC_YOUTUBE_API_KEY in your .env file"
+            );
+        }
+
+        const params = {
+            part: "snippet,statistics",
+            id: videoId,
+            key: API_KEY,
+        };
+
+        const response = await axios.get<YouTubeVideoDetailsResponse>(
+            `${YOUTUBE_API_BASE_URL}/videos`,
+            {
+                params,
+                headers: {
+                    Accept: "application/json",
+                    "User-Agent": "ReactNative-VideoApp/1.0",
+                },
+                timeout: 10000,
+            }
+        );
+
+        if (!response.data.items || response.data.items.length === 0) {
+            throw new Error("Video not found");
+        }
+
+        return response.data.items[0];
+    } catch (error: any) {
+        console.error("❌ Error fetching video details:");
+        console.error("- Error message:", error.message);
+        console.error("- Error response:", error.response?.data);
+        console.error("- Error status:", error.response?.status);
+        throw error;
+    }
+};
+
+/**
+ * Get YouTube embed URL for WebView
+ * @param videoId - The YouTube video ID
+ * @returns string - YouTube embed URL
+ */
+export const getYouTubeEmbedUrl = (videoId: string): string => {
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&showinfo=0&rel=0&modestbranding=1`;
 };
