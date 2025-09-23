@@ -809,7 +809,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -920,7 +920,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -962,7 +962,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
