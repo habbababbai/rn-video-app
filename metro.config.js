@@ -10,6 +10,9 @@ config.resolver.assetExts = config.resolver.assetExts.filter(
 );
 config.resolver.sourceExts.push("svg");
 
+// Add support for video files
+config.resolver.assetExts.push("mp4", "mov", "avi", "mkv", "webm");
+
 // Add support for .env files
 config.resolver.platforms = ["ios", "android", "native", "web"];
 
