@@ -11,11 +11,18 @@ const persistConfig = {
     whitelist: ["auth", "videoNotes", "reminder"], // Persist auth, video notes, reminder
 };
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
     auth: authReducer,
     videoNotes: videoNotesReducer,
     reminder: reminderReducer,
 });
+
+const rootReducer = (state: any, action: any) => {
+    if (action.type === "auth/logout") {
+        state = undefined;
+    }
+    return appReducer(state, action);
+};
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

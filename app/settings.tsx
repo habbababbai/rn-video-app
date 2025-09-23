@@ -6,6 +6,7 @@ import ToggleSwitch from "@/components/ToggleSwitch";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { RootState } from "@/store";
+import { logout } from "@/store/slices/authSlice";
 import {
     setEnabled as setReminderEnabledAction,
     setNotificationId as setReminderNotificationId,
@@ -150,12 +151,28 @@ export default function SettingsScreen() {
                 <Text style={styles.headerTitle}>Settings</Text>
                 <View style={{ width: fp(18) }} />
             </View>
-            <View style={styles.avatarSection}>
+            <Pressable
+                style={styles.avatarSection}
+                onLongPress={() =>
+                    Alert.alert("Logout", "Are you sure you want to logout?", [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                            text: "Logout",
+                            style: "destructive",
+                            onPress: () => {
+                                dispatch(logout());
+                                router.replace("/login" as any);
+                            },
+                        },
+                    ])
+                }
+                delayLongPress={2000}
+            >
                 <View style={styles.avatarCircle}>
                     <PersonIcon width={fp(28)} height={fp(28)} />
                 </View>
                 <Text style={styles.userName}>Your Name</Text>
-            </View>
+            </Pressable>
 
             <View style={styles.divider} />
 
