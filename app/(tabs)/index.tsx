@@ -26,10 +26,22 @@ export default function HomeScreen() {
 
     const keywords = ["React Native", "React", "TypeScript", "Javascript"];
 
-    const reactNativeQuery = useYouTubeVideosBySearch("React Native", 5);
-    const reactQuery = useYouTubeVideosBySearch("React", 5);
-    const typescriptQuery = useYouTubeVideosBySearch("TypeScript", 5);
-    const javascriptQuery = useYouTubeVideosBySearch("Javascript", 5);
+    const reactNativeQuery = useYouTubeVideosBySearch(
+        "React Native",
+        5,
+        "relevance"
+    );
+    const reactQuery = useYouTubeVideosBySearch("React", 5, "relevance");
+    const typescriptQuery = useYouTubeVideosBySearch(
+        "TypeScript",
+        5,
+        "relevance"
+    );
+    const javascriptQuery = useYouTubeVideosBySearch(
+        "Javascript",
+        5,
+        "relevance"
+    );
 
     const queries = [
         reactNativeQuery,

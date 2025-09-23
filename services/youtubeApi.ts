@@ -82,17 +82,21 @@ export interface YouTubeVideoDetailsResponse {
     items: YouTubeVideoDetails[];
 }
 
+export type SortOrder = 'relevance' | 'date' | 'rating' | 'viewCount' | 'title';
+
 /**
  * Fetch videos using the working API structure with pagination support
  * @param searchTerm - The term to search for
  * @param maxResults - Maximum number of videos to fetch (default: 10)
  * @param pageToken - Token for pagination (optional)
+ * @param order - Sort order for results (default: 'relevance')
  * @returns Promise<YouTubeSearchResponse> - Full response with items and pagination info
  */
 export const fetchVideosBySearchTerm = async (
     searchTerm: string,
     maxResults: number = 10,
-    pageToken?: string
+    pageToken?: string,
+    order: SortOrder = 'relevance'
 ): Promise<YouTubeSearchResponse> => {
     try {
         if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY_HERE") {
@@ -107,6 +111,7 @@ export const fetchVideosBySearchTerm = async (
             q: searchTerm,
             type: "video",
             maxResults: maxResults,
+            order: order, // Add sort order
             key: API_KEY,
         };
 
