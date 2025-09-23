@@ -1,7 +1,7 @@
 import {
+    CustomSortOrder,
     fetchVideoDetails,
     fetchVideosBySearchTerm,
-    SortOrder,
     YouTubeSearchResponse,
     YouTubeVideo,
     YouTubeVideoDetails,
@@ -15,14 +15,14 @@ export const youtubeQueryKeys = {
     videosBySearch: (
         searchTerm: string,
         maxResults: number,
-        order?: SortOrder
+        order?: CustomSortOrder
     ) =>
         [
             ...youtubeQueryKeys.videos(),
             "search",
             searchTerm,
             maxResults,
-            order || "relevance",
+            order || "popular",
         ] as const,
     videoDetails: (videoId: string) =>
         [...youtubeQueryKeys.videos(), "details", videoId] as const,
@@ -31,7 +31,7 @@ export const youtubeQueryKeys = {
 export const useYouTubeVideosBySearch = (
     searchTerm: string,
     maxResults: number = 5,
-    order: SortOrder = "relevance"
+    order: CustomSortOrder = "popular"
 ) => {
     return useQuery<YouTubeVideo[], Error>({
         queryKey: youtubeQueryKeys.videosBySearch(
@@ -62,7 +62,7 @@ export const useYouTubeVideosBySearch = (
 export const useYouTubeVideosBySearchInfinite = (
     searchTerm: string,
     maxResults: number = 10,
-    order: SortOrder = "relevance"
+    order: CustomSortOrder = "popular"
 ) => {
     return useInfiniteQuery<YouTubeSearchResponse, Error>({
         queryKey: [

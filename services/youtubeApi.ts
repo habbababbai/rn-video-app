@@ -83,6 +83,49 @@ export interface YouTubeVideoDetailsResponse {
 }
 
 export type SortOrder = "relevance" | "date" | "rating" | "viewCount" | "title";
+export type CustomSortOrder = "latest" | "oldest" | "popular";
+
+export const convertCustomSortToAPI = (
+    customSort: CustomSortOrder
+): SortOrder => {
+    switch (customSort) {
+        case "latest":
+            return "date";
+        case "oldest":
+            return "date"; // Use date but with publishedBefore to get older videos
+        case "popular":
+            return "relevance";
+        default:
+            return "relevance";
+    }
+};
+
+export const getPublishedBeforeParam = (
+    customSort: CustomSortOrder
+): string | undefined => {
+    switch (customSort) {
+        case "oldest":
+            // Get videos published before 1 year ago to ensure older content
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+            return oneYearAgo.toISOString();
+        default:
+            return undefined;
+    }
+};
+
+export const getMaxResultsForSort = (
+    customSort: CustomSortOrder,
+    requestedMax: number
+): number => {
+    switch (customSort) {
+        case "oldest":
+            // Fetch more results to have a better chance of getting older videos
+            return Math.min(requestedMax * 3, 50); // Fetch up to 3x more results
+        default:
+            return requestedMax;
+    }
+};
 
 /**
  * Fetch videos using the working API structure with pagination support
@@ -96,7 +139,7 @@ export const fetchVideosBySearchTerm = async (
     searchTerm: string,
     maxResults: number = 10,
     pageToken?: string,
-    order: SortOrder = "relevance"
+    customSortOrder: CustomSortOrder = "popular"
 ): Promise<YouTubeSearchResponse> => {
     try {
         if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY_HERE") {
@@ -106,14 +149,26 @@ export const fetchVideosBySearchTerm = async (
         }
 
         // Use the same working parameter structure as testApiKey
+        const apiSortOrder = convertCustomSortToAPI(customSortOrder);
+        const actualMaxResults = getMaxResultsForSort(
+            customSortOrder,
+            maxResults
+        );
+        const publishedBefore = getPublishedBeforeParam(customSortOrder);
+
         const params: any = {
             part: "snippet",
             q: searchTerm,
             type: "video",
-            maxResults: maxResults,
-            order: order, // Add sort order
+            maxResults: actualMaxResults,
+            order: apiSortOrder,
             key: API_KEY,
         };
+
+        // Add publishedBefore parameter for oldest sorting
+        if (publishedBefore) {
+            params.publishedBefore = publishedBefore;
+        }
 
         // Add pageToken if provided for pagination
         if (pageToken) {
@@ -132,7 +187,26 @@ export const fetchVideosBySearchTerm = async (
             }
         );
 
-        return response.data;
+        let data = response.data;
+
+        // Handle "oldest" sorting by sorting by published date and taking the oldest results
+        if (customSortOrder === "oldest") {
+            // Sort by published date (oldest first) and take only the requested amount
+            const sortedItems = [...data.items]
+                .sort((a, b) => {
+                    const dateA = new Date(a.snippet.publishedAt);
+                    const dateB = new Date(b.snippet.publishedAt);
+                    return dateA.getTime() - dateB.getTime(); // Oldest first
+                })
+                .slice(0, maxResults);
+
+            data = {
+                ...data,
+                items: sortedItems,
+            };
+        }
+
+        return data;
     } catch (error: any) {
         console.error("❌ Error fetching videos:");
         console.error("- Error message:", error.message);

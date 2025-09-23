@@ -3,14 +3,21 @@ import SortModal from "@/components/SortModal";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearchInfinite } from "@/hooks/useYouTubeApi";
-import { SortOrder, YouTubeVideo } from "@/services/youtubeApi";
+import { CustomSortOrder, YouTubeVideo } from "@/services/youtubeApi";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import {
     ActivityIndicator,
     FlatList,
     Image,
+    RefreshControl,
     StyleSheet,
     Text,
     TextInput,
@@ -24,7 +31,7 @@ export default function SearchScreen() {
     const { keyword } = useLocalSearchParams<{ keyword?: string }>();
     const [searchQuery, setSearchQuery] = useState(keyword || "React Native"); // Show default search in input
     const [searchTerm, setSearchTerm] = useState(keyword || "React Native"); // Use keyword from URL or default
-    const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
+    const [sortOrder, setSortOrder] = useState<CustomSortOrder>("popular");
     const [showFilterModal, setShowFilterModal] = useState(false);
     const searchInputRef = useRef<TextInput>(null);
 
@@ -41,7 +48,7 @@ export default function SearchScreen() {
     );
 
     // Handle keyword parameter changes
-    React.useEffect(() => {
+    useEffect(() => {
         if (keyword && keyword !== searchTerm) {
             setSearchTerm(keyword);
             setSearchQuery(keyword);
@@ -75,26 +82,28 @@ export default function SearchScreen() {
         }
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    const handleSortChange = useCallback((newSortOrder: SortOrder) => {
+    const handleSortChange = useCallback((newSortOrder: CustomSortOrder) => {
         setSortOrder(newSortOrder);
         setShowFilterModal(false);
         // The hook will automatically refetch with the new sort order
     }, []);
 
-    const getSortOrderLabel = (order: SortOrder): string => {
+    const handleRefresh = useCallback(() => {
+        if (searchTerm) {
+            refetch();
+        }
+    }, [searchTerm, refetch]);
+
+    const getSortOrderLabel = (order: CustomSortOrder): string => {
         switch (order) {
-            case "relevance":
-                return "Most Popular";
-            case "date":
-                return "Newest First";
-            case "rating":
-                return "Highest Rated";
-            case "viewCount":
-                return "Most Viewed";
-            case "title":
-                return "Alphabetical";
+            case "popular":
+                return "Most popular";
+            case "latest":
+                return "Upload date: latest";
+            case "oldest":
+                return "Upload date: oldest";
             default:
-                return "Most Popular";
+                return "Most popular";
         }
     };
 
@@ -232,7 +241,10 @@ export default function SearchScreen() {
                     onPress={() => setShowFilterModal(true)}
                 >
                     <Text style={styles.filterButtonText}>
-                        {getSortOrderLabel(sortOrder)}
+                        Sort by:{" "}
+                        <Text style={styles.sortOrderBold}>
+                            {getSortOrderLabel(sortOrder)}
+                        </Text>
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -250,6 +262,14 @@ export default function SearchScreen() {
                         onEndReached={handleLoadMore}
                         onEndReachedThreshold={0.5}
                         ListFooterComponent={renderFooter}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={isLoading}
+                                onRefresh={handleRefresh}
+                                tintColor={colors.primary}
+                                colors={[colors.primary]}
+                            />
+                        }
                     />
                 </>
             ) : (
@@ -274,8 +294,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(20),
         paddingVertical: hp(15),
         backgroundColor: colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
     },
     searchContainer: {
         width: "100%",
@@ -315,7 +333,7 @@ const styles = StyleSheet.create({
         marginBottom: hp(15),
         padding: wp(12),
         borderRadius: fp(12),
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -388,7 +406,7 @@ const styles = StyleSheet.create({
     errorText: {
         fontFamily: fonts.poppinsMedium,
         fontSize: fp(16),
-        color: "#dc3545",
+        color: colors.alert,
         textAlign: "center",
         marginBottom: hp(8),
     },
@@ -414,8 +432,6 @@ const styles = StyleSheet.create({
     resultsHeader: {
         paddingVertical: hp(12),
         backgroundColor: colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
     },
     resultsCount: {
         fontFamily: fonts.poppins,
@@ -430,16 +446,18 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     filterButton: {
-        paddingHorizontal: wp(16),
-        paddingVertical: hp(12),
-        backgroundColor: "#f0f0f0",
-        borderRadius: fp(8),
-        alignSelf: "flex-start",
+        marginTop: hp(5),
+        alignSelf: "flex-end",
     },
     filterButtonText: {
-        fontFamily: fonts.poppinsMedium,
-        fontSize: fp(14),
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(12),
         color: colors.primary,
         letterSpacing: wp(0.5),
+        fontWeight: "400",
+    },
+    sortOrderBold: {
+        fontFamily: fonts.poppinsSemiBold,
+        fontWeight: "600",
     },
 });

@@ -11,6 +11,7 @@ export const colors = {
         placeholder: "#999999",
     },
     overlay: {
+        darker: "rgba(39, 39, 39, 0.85)",
         dark: "rgba(0, 0, 0, 0.25)",
         light: "rgba(255, 255, 255, 0.3)",
         timer: "rgba(0, 0, 0, 0)",
