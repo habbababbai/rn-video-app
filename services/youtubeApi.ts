@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Import environment variable
-const YOUTUBE_API_KEY =
-    process.env.YOUTUBE_API_KEY || "YOUR_YOUTUBE_API_KEY_HERE";
+// Use Expo's built-in environment variable support
+const API_KEY =
+    process.env.EXPO_PUBLIC_YOUTUBE_API_KEY || "YOUR_YOUTUBE_API_KEY_HERE";
 
 // YouTube Data API configuration
 const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
@@ -57,8 +57,10 @@ export const fetchVideosBySearchTerm = async (
     maxResults: number = 5
 ): Promise<YouTubeVideo[]> => {
     try {
-        if (!YOUTUBE_API_KEY) {
-            throw new Error("API key not configured");
+        if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY_HERE") {
+            throw new Error(
+                "YouTube API key not configured. Please set EXPO_PUBLIC_YOUTUBE_API_KEY in your .env file"
+            );
         }
 
         // Use the same working parameter structure as testApiKey
@@ -67,7 +69,7 @@ export const fetchVideosBySearchTerm = async (
             q: searchTerm,
             type: "video",
             maxResults: maxResults,
-            key: YOUTUBE_API_KEY,
+            key: API_KEY,
         };
 
         const response = await axios.get<YouTubeSearchResponse>(

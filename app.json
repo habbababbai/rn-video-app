@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": []
+      "permissions": [],
+      "package": "com.anonymous.rnvideoapp"
     },
     "web": {
       "output": "static",
