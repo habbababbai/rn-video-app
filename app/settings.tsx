@@ -10,11 +10,11 @@ import {
     setNotificationId as setReminderNotificationId,
     setTime as setReminderTime,
 } from "@/store/slices/reminderSlice";
-import { fp, hp, wp } from "@/utils/responsive";
+import { fp, hp, spacing, wp } from "@/utils/responsive";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Alert,
     Platform,
@@ -35,14 +35,14 @@ export default function SettingsScreen() {
     const [reminderEnabled, setReminderEnabled] = useState(false);
     const [time, setTime] = useState<Date>(new Date());
 
-    React.useEffect(() => {
+    useEffect(() => {
         setReminderEnabled(reminderState.enabled);
         const initial = new Date();
         initial.setHours(reminderState.hour, reminderState.minute, 0, 0);
         setTime(initial);
     }, [reminderState.enabled, reminderState.hour, reminderState.minute]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (Platform.OS === "android") {
             Notifications.setNotificationChannelAsync("default", {
                 name: "Default",
@@ -145,7 +145,7 @@ export default function SettingsScreen() {
         <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.headerRow}>
                 <Pressable onPress={() => router.back()} hitSlop={8}>
-                    <LeftArrowIcon width={fp(18)} height={fp(18)} />
+                    <LeftArrowIcon width={fp(32)} height={fp(32)} />
                 </Pressable>
                 <Text style={styles.headerTitle}>Settings</Text>
                 <View style={{ width: fp(18) }} />
@@ -158,35 +158,43 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.divider} />
-            <BellIcon width={fp(24)} height={fp(24)} />
-            <Text style={styles.sectionTitle}>Learning reminders</Text>
 
-            <View style={styles.reminderRow}>
-                <Text style={styles.reminderLabel}>Repeat everyday at:</Text>
+            <View style={styles.remainderContainer}>
+                <View style={styles.remainderTitleContainer}>
+                    <BellIcon width={fp(36)} height={fp(36)} />
+                    <Text style={styles.sectionTitle}>Learning reminders</Text>
+                </View>
+                <View style={styles.reminderRow}>
+                    <Text style={styles.reminderLabel}>
+                        Repeat everyday at:
+                    </Text>
 
-                <ClockIcon width={fp(24)} height={fp(24)} />
+                    <ClockIcon width={fp(24)} height={fp(24)} />
 
-                <DateTimePicker
-                    value={time}
-                    mode="time"
-                    display="default"
-                    onChange={onChangeTime}
-                />
+                    <DateTimePicker
+                        value={time}
+                        mode="time"
+                        display="default"
+                        onChange={onChangeTime}
+                    />
 
-                <Switch
-                    value={reminderEnabled}
-                    onValueChange={handleToggleReminder}
-                    thumbColor={reminderEnabled ? colors.white : colors.white}
-                    trackColor={{
-                        false: colors.gray.light,
-                        true: colors.primary,
-                    }}
-                />
+                    <Switch
+                        value={reminderEnabled}
+                        onValueChange={handleToggleReminder}
+                        thumbColor={
+                            reminderEnabled ? colors.white : colors.white
+                        }
+                        trackColor={{
+                            false: colors.gray.light,
+                            true: colors.primary,
+                        }}
+                    />
+                </View>
+
+                <Text style={styles.helperText}>
+                    You will receive friendly reminder to remember to study
+                </Text>
             </View>
-
-            <Text style={styles.helperText}>
-                you will receive friendly reminder to remember to study
-            </Text>
         </SafeAreaView>
     );
 }
@@ -195,36 +203,41 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.white,
-        paddingHorizontal: wp(20),
     },
     headerRow: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "flex-start",
         paddingVertical: hp(16),
+        paddingHorizontal: spacing.lg,
     },
     headerTitle: {
-        fontFamily: fonts.poppinsSemiBold,
-        fontSize: fp(18),
+        fontFamily: fonts.poppinsBold,
+        fontWeight: "700",
+        fontSize: fp(16),
         color: colors.primary,
         letterSpacing: wp(0.5),
+        paddingLeft: spacing.lg,
     },
     avatarSection: {
         alignItems: "center",
         paddingTop: hp(10),
         paddingBottom: hp(14),
+        flexDirection: "row",
+        alignSelf: "center",
+        gap: spacing.md,
     },
     avatarCircle: {
         width: fp(64),
         height: fp(64),
         borderRadius: fp(32),
-        backgroundColor: colors.secondary,
+        backgroundColor: colors.primary,
         alignItems: "center",
         justifyContent: "center",
     },
     userName: {
-        marginTop: hp(8),
-        fontFamily: fonts.poppinsMedium,
+        fontFamily: fonts.poppinsBold,
+        fontWeight: "700",
         fontSize: fp(14),
         color: colors.primary,
         letterSpacing: wp(0.5),
@@ -236,11 +249,13 @@ const styles = StyleSheet.create({
         marginVertical: hp(12),
     },
     sectionTitle: {
-        fontFamily: fonts.poppinsSemiBold,
-        fontSize: fp(16),
+        fontFamily: fonts.poppins,
+        fontSize: fp(14),
         color: colors.primary,
         letterSpacing: wp(0.5),
-        marginBottom: hp(12),
+    },
+    remainderContainer: {
+        paddingHorizontal: spacing.lg,
     },
     reminderRow: {
         flexDirection: "row",
@@ -254,6 +269,13 @@ const styles = StyleSheet.create({
         color: colors.primary,
         letterSpacing: wp(0.5),
         flexShrink: 0,
+        fontWeight: "400",
+    },
+    remainderTitleContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+        paddingBottom: spacing.md,
     },
     timeButton: {
         paddingVertical: hp(8),
@@ -269,10 +291,11 @@ const styles = StyleSheet.create({
         letterSpacing: wp(0.5),
     },
     helperText: {
-        marginTop: hp(12),
-        fontFamily: fonts.poppins,
-        fontSize: fp(12),
+        marginTop: hp(36),
+        fontFamily: fonts.poppinsSemiBold,
+        fontWeight: "600",
+        fontSize: fp(10),
         color: colors.primary,
-        letterSpacing: wp(0.5),
+        letterSpacing: wp(0.25),
     },
 });
