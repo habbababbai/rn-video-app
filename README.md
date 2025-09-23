@@ -44,7 +44,7 @@ npm install
 
     ```bash
     # Create .env file in project root
-    echo "YOUTUBE_API_KEY=your_api_key_here" > .env
+    echo "EXPO_PUBLIC_YOUTUBE_API_KEY=your_api_key_here" > .env
     ```
 
     **Important**: Replace `your_api_key_here` with your actual YouTube Data API key.
@@ -107,7 +107,7 @@ assets/              # Images, icons, and media files
 Create a `.env` file in the project root:
 
 ```env
-YOUTUBE_API_KEY=your_youtube_data_api_key_here
+EXPO_PUBLIC_YOUTUBE_API_KEY=your_youtube_data_api_key_here
 ```
 
 ### App Configuration
