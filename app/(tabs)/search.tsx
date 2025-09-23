@@ -218,8 +218,11 @@ export default function SearchScreen() {
                             {(data?.pages?.[0] as any)?.pageInfo?.totalResults
                                 ? `${(
                                       data.pages[0] as any
-                                  ).pageInfo.totalResults.toLocaleString()} videos found for "${searchTerm}"`
-                                : `${allVideos.length} videos found for "${searchTerm}"`}
+                                  ).pageInfo.totalResults.toLocaleString()} results found for `
+                                : `${allVideos.length} videos found for `}
+                            <Text style={styles.searchTermBold}>
+                                &quot;{searchTerm}&quot;
+                            </Text>
                         </Text>
                     </View>
                 )}
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         borderRadius: fp(8),
-        borderWidth: wp(1),
+        borderWidth: wp(2),
         borderColor: colors.primary,
         backgroundColor: colors.white,
         paddingHorizontal: wp(12),
@@ -301,8 +304,6 @@ const styles = StyleSheet.create({
         letterSpacing: wp(0.5),
         lineHeight: hp(20),
         textAlignVertical: "center",
-        includeFontPadding: false,
-        paddingVertical: 0,
     },
     listContainer: {
         paddingHorizontal: wp(20),
@@ -411,18 +412,22 @@ const styles = StyleSheet.create({
         marginLeft: wp(8),
     },
     resultsHeader: {
-        paddingHorizontal: wp(20),
         paddingVertical: hp(12),
         backgroundColor: colors.white,
         borderBottomWidth: 1,
         borderBottomColor: "#e0e0e0",
     },
     resultsCount: {
-        fontFamily: fonts.poppinsMedium,
-        fontSize: fp(14),
+        fontFamily: fonts.poppins,
+        fontSize: fp(10),
         color: colors.primary,
-        textAlign: "center",
-        letterSpacing: wp(0.5),
+        textAlign: "left",
+        letterSpacing: wp(0.25),
+        fontWeight: "400",
+    },
+    searchTermBold: {
+        fontFamily: fonts.poppinsSemiBold,
+        fontWeight: "600",
     },
     filterButton: {
         paddingHorizontal: wp(16),
