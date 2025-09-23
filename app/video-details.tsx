@@ -20,12 +20,10 @@ export default function VideoDetailsScreen() {
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
     const videoRef = useRef<VideoRef>(null);
 
-    // Video state management
     const [isPlaying, setIsPlaying] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [isSeeking, setIsSeeking] = useState(false);
     const [showControls, setShowControls] = useState(true);
 
     // Auto-hide controls
@@ -40,21 +38,19 @@ export default function VideoDetailsScreen() {
             clearTimeout(hideControlsTimeoutRef.current);
         }
         hideControlsTimeoutRef.current = setTimeout(() => {
-            if (isPlaying && !isSeeking) {
+            if (isPlaying) {
                 controlsOpacity.value = withTiming(0, { duration: 300 });
                 setShowControls(false);
             }
         }, 3000);
-    }, [isPlaying, isSeeking, controlsOpacity]);
+    }, [isPlaying, controlsOpacity]);
 
-    // Show controls and restart timer
     const showControlsAndStartTimer = useCallback(() => {
         controlsOpacity.value = withTiming(1, { duration: 300 });
         setShowControls(true);
         startHideTimer();
     }, [controlsOpacity, startHideTimer]);
 
-    // Clear timer on unmount
     useEffect(() => {
         return () => {
             if (hideControlsTimeoutRef.current) {
@@ -63,17 +59,13 @@ export default function VideoDetailsScreen() {
         };
     }, []);
 
-    // Progress bar animation values
     const screenWidth = Dimensions.get("window").width;
     const progressBarWidth = screenWidth; // Full screen width
 
-    // Use placeholder video for testing - always show placeholder for now
     const videoSource = require("@/assets/videos/broadchurch.mp4");
 
-    // Handle play/pause/replay functionality
     const handlePlayPause = () => {
         if (isFinished) {
-            // Replay video from beginning
             videoRef.current?.seek(0);
             setIsFinished(false);
             setIsPlaying(true);
@@ -83,7 +75,6 @@ export default function VideoDetailsScreen() {
         showControlsAndStartTimer();
     };
 
-    // Handle video events
     const handleVideoLoad = (data: any) => {
         console.log("Video Loaded:", data);
         setIsFinished(false);
@@ -102,40 +93,32 @@ export default function VideoDetailsScreen() {
     };
 
     const handleVideoProgress = (data: any) => {
-        if (!isSeeking) {
-            setCurrentTime(data.currentTime);
-        }
+        setCurrentTime(data.currentTime);
     };
 
-    // Start auto-hide timer when video starts playing
     useEffect(() => {
         if (isPlaying && showControls) {
             startHideTimer();
         }
     }, [isPlaying, showControls, startHideTimer]);
 
-    // Seek to specific time
     const seekTo = (time: number) => {
         videoRef.current?.seek(time);
         setCurrentTime(time);
     };
 
-    // Calculate progress percentage
     const getProgress = () => {
         return duration > 0 ? currentTime / duration : 0;
     };
 
-    // Calculate thumb position
     const getThumbPosition = () => {
         return getProgress() * progressBarWidth;
     };
 
-    // Animated styles
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
         opacity: controlsOpacity.value,
     }));
 
-    // Extracted components
     const PlayButton = () => (
         <Animated.View style={[styles.controlsOverlay, controlsAnimatedStyle]}>
             <TouchableOpacity
@@ -177,7 +160,6 @@ export default function VideoDetailsScreen() {
         </Animated.View>
     );
 
-    // Handle progress bar tap
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
         const progress = Math.max(0, Math.min(locationX / progressBarWidth, 1));
