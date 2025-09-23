@@ -788,7 +788,8 @@ const styles = StyleSheet.create({
     statisticsContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        paddingVertical: spacing.xs,
+        paddingTop: spacing.xs,
+        paddingVertical: 2 * spacing.xxxl,
     },
     statisticsItem: {
         backgroundColor: colors.primary,
