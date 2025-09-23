@@ -44,6 +44,26 @@ export default function VideoDetailsScreen() {
     const [showControls, setShowControls] = useState(true);
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
+
+    // Tab content components
+    const DetailsTab = () => (
+        <View style={styles.descriptionContainer}>
+            <Text style={styles.descriptionText}>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+            </Text>
+        </View>
+    );
+
+    const NotesTab = () => (
+        <View style={styles.notesContainer}>
+            <Text style={styles.notesText}>
+                No notes available for this video.
+            </Text>
+        </View>
+    );
 
     // Auto-hide controls
     const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -435,6 +455,47 @@ export default function VideoDetailsScreen() {
                     </View>
                     <Text style={styles.channelName}>Channel Name</Text>
                 </View>
+
+                {/* Tab Bar */}
+                <View style={styles.tabBar}>
+                    <TouchableOpacity
+                        style={[
+                            styles.tabButton,
+                            activeTab === "details" && styles.activeTabButton,
+                        ]}
+                        onPress={() => setActiveTab("details")}
+                    >
+                        <Text
+                            style={[
+                                styles.tabText,
+                                activeTab === "details" && styles.activeTabText,
+                            ]}
+                        >
+                            Details
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[
+                            styles.tabButton,
+                            activeTab === "notes" && styles.activeTabButton,
+                        ]}
+                        onPress={() => setActiveTab("notes")}
+                    >
+                        <Text
+                            style={[
+                                styles.tabText,
+                                activeTab === "notes" && styles.activeTabText,
+                            ]}
+                        >
+                            Notes
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Tab Content */}
+                <View style={styles.tabContent}>
+                    {activeTab === "details" ? <DetailsTab /> : <NotesTab />}
+                </View>
             </View>
         </GestureHandlerRootView>
     );
@@ -463,6 +524,58 @@ const styles = StyleSheet.create({
         color: colors.primary,
         letterSpacing: wp(0.5),
         fontWeight: "700",
+    },
+    tabBar: {
+        flexDirection: "row",
+        backgroundColor: colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.gray.light,
+        marginTop: hp(20),
+    },
+    tabButton: {
+        flex: 1,
+        paddingVertical: hp(15),
+        alignItems: "center",
+        borderBottomWidth: 2,
+        borderBottomColor: "transparent",
+    },
+    activeTabButton: {
+        borderBottomColor: colors.alert,
+    },
+    tabText: {
+        fontSize: fp(14),
+        fontFamily: fonts.poppinsMedium,
+        color: colors.gray.medium,
+        fontWeight: "500",
+    },
+    activeTabText: {
+        color: colors.alert,
+        fontWeight: "600",
+    },
+    tabContent: {
+        flex: 1,
+        paddingHorizontal: wp(15),
+        paddingTop: hp(15),
+    },
+    descriptionContainer: {
+        flex: 1,
+    },
+    descriptionText: {
+        fontSize: fp(14),
+        fontFamily: fonts.poppinsRegular,
+        color: colors.gray.dark,
+        lineHeight: hp(20),
+    },
+    notesContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    notesText: {
+        fontSize: fp(14),
+        fontFamily: fonts.poppinsRegular,
+        color: colors.gray.medium,
+        textAlign: "center",
     },
     container: {
         flex: 1,
