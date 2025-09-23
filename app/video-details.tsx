@@ -6,6 +6,7 @@ import FullscreenIcon from "@/assets/images/svg/fullscreen.svg";
 import LeftArrowIcon from "@/assets/images/svg/left-arrow.svg";
 import MuteIcon from "@/assets/images/svg/mute.svg";
 import PauseIcon from "@/assets/images/svg/pause.svg";
+import PersonIcon from "@/assets/images/svg/person.svg";
 import PlayIcon from "@/assets/images/svg/play.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
@@ -419,20 +420,50 @@ export default function VideoDetailsScreen() {
                     isFullscreen && styles.fullscreenDetailsContainer,
                 ]}
             >
-                <Text style={styles.title}>Video Details</Text>
-                <Text style={styles.subtitle}>
-                    Video ID: {videoId || "No ID provided"}
+                <Text numberOfLines={1} style={styles.title}>
+                    Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit Sed
+                    Do Eiusmod Tempor Incididunt Ut Labore Et Dolore Magna
+                    Aliqua{" "}
                 </Text>
-                <Text style={styles.placeholder}>
-                    This screen will contain video details, player, and related
-                    content.
-                </Text>
+                <View style={styles.channelDetailsContainer}>
+                    <View style={styles.accountIconContainer}>
+                        <PersonIcon
+                            width={wp(24)}
+                            height={hp(24)}
+                            fill="white"
+                        />
+                    </View>
+                    <Text style={styles.channelName}>Channel Name</Text>
+                </View>
             </View>
         </GestureHandlerRootView>
     );
 }
 
 const styles = StyleSheet.create({
+    accountIconContainer: {
+        backgroundColor: colors.primary,
+        height: fp(48),
+        width: fp(48),
+        borderRadius: fp(24),
+        justifyContent: "center",
+        alignItems: "center",
+        marginHorizontal: wp(10),
+    },
+    channelDetailsContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        width: "100%",
+        paddingTop: hp(15),
+    },
+    channelName: {
+        fontFamily: fonts.poppinsBold,
+        fontSize: fp(14),
+        color: colors.primary,
+        letterSpacing: wp(0.5),
+        fontWeight: "700",
+    },
     container: {
         flex: 1,
         backgroundColor: colors.black,
@@ -666,8 +697,9 @@ const styles = StyleSheet.create({
     },
     detailsContainer: {
         flex: 1,
-        padding: wp(20),
-        justifyContent: "center",
+        paddingHorizontal: wp(15),
+        paddingVertical: hp(20),
+        justifyContent: "flex-start",
         alignItems: "center",
         backgroundColor: colors.white,
     },
@@ -675,10 +707,12 @@ const styles = StyleSheet.create({
         display: "none",
     },
     title: {
-        fontSize: fp(24),
-        fontWeight: "bold",
+        fontSize: fp(18),
+        fontFamily: fonts.poppinsSemiBold,
+        fontWeight: "600",
         marginBottom: hp(10),
         color: colors.gray.dark,
+        letterSpacing: wp(0.5),
     },
     subtitle: {
         fontSize: fp(16),
