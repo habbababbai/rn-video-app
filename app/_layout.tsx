@@ -60,7 +60,7 @@ export default function RootLayout() {
                             options={{ headerShown: true }}
                         />
                     </Stack>
-                    <StatusBar style="auto" />
+                    <StatusBar style="dark" />
                 </PersistGate>
             </Provider>
         </PersistQueryClientProvider>

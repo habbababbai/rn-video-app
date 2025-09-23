@@ -17,11 +17,11 @@ import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
+import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     Keyboard,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -556,10 +556,7 @@ export default function VideoDetailsScreen() {
                             headerShown: false,
                         }}
                     />
-                    <StatusBar
-                        barStyle="light-content"
-                        backgroundColor="black"
-                    />
+                    <StatusBar style="light" />
 
                     {videoSource ? (
                         <TouchableOpacity
