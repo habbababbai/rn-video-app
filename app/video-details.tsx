@@ -1,4 +1,14 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+// Custom SVG icons imported
+import AirplayIcon from "@/assets/images/svg/airplay.svg";
+import BackwardIcon from "@/assets/images/svg/backward.svg";
+import ForwardIcon from "@/assets/images/svg/forward.svg";
+import FullscreenIcon from "@/assets/images/svg/fullscreen.svg";
+import LeftArrowIcon from "@/assets/images/svg/left-arrow.svg";
+import MuteIcon from "@/assets/images/svg/mute.svg";
+import PauseIcon from "@/assets/images/svg/pause.svg";
+import PlayIcon from "@/assets/images/svg/play.svg";
+import { colors } from "@/constants/colors";
+import { fp, hp, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -145,44 +155,56 @@ export default function VideoDetailsScreen() {
     const PlayButton = () => (
         <Animated.View style={[styles.controlsOverlay, controlsAnimatedStyle]}>
             <View style={styles.controlsRow}>
-                {/* Backward Button */}
                 <TouchableOpacity
                     style={styles.seekButton}
                     onPress={seekBackward}
                     activeOpacity={0.6}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <MaterialIcons name="replay-5" size={36} color="white" />
+                    <BackwardIcon
+                        width={wp(18)}
+                        height={hp(18)}
+                        stroke="white"
+                    />
                 </TouchableOpacity>
-
-                {/* Play/Pause Button */}
                 <TouchableOpacity
                     style={styles.playButton}
                     onPress={handlePlayPause}
                     activeOpacity={0.6}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <MaterialIcons
-                        name={
-                            isFinished
-                                ? "replay"
-                                : isPlaying
-                                ? "pause"
-                                : "play-arrow"
-                        }
-                        size={64}
-                        color="white"
-                    />
+                    {isFinished ? (
+                        <PlayIcon
+                            width={wp(24)}
+                            height={hp(24)}
+                            stroke="white"
+                        />
+                    ) : isPlaying ? (
+                        <PauseIcon
+                            width={wp(24)}
+                            height={hp(24)}
+                            stroke="white"
+                        />
+                    ) : (
+                        <PlayIcon
+                            width={wp(24)}
+                            height={hp(24)}
+                            stroke="white"
+                        />
+                    )}
                 </TouchableOpacity>
 
-                {/* Forward Button */}
                 <TouchableOpacity
                     style={styles.seekButton}
                     onPress={seekForward}
                     activeOpacity={0.6}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <MaterialIcons name="forward-5" size={36} color="white" />
+                    <ForwardIcon
+                        width={wp(18)}
+                        height={hp(18)}
+                        stroke="white"
+                    />
                 </TouchableOpacity>
             </View>
         </Animated.View>
@@ -196,6 +218,7 @@ export default function VideoDetailsScreen() {
                 style={styles.progressBarBackground}
                 onPress={handleProgressBarPress}
                 activeOpacity={0.8}
+                hitSlop={{ top: hp(20), bottom: hp(20), left: 0, right: 0 }}
             >
                 <View
                     style={[
@@ -203,11 +226,17 @@ export default function VideoDetailsScreen() {
                         { width: getThumbPosition() },
                     ]}
                 />
+                {/* Red Thumb */}
+                <View
+                    style={[
+                        styles.progressBarThumb,
+                        { left: getThumbPosition() - wp(6) },
+                    ]}
+                />
             </TouchableOpacity>
         </Animated.View>
     );
 
-    // Format time helper function
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
@@ -242,7 +271,7 @@ export default function VideoDetailsScreen() {
                 activeOpacity={0.6}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <MaterialIcons name="arrow-back" size={24} color="white" />
+                <LeftArrowIcon width={wp(20)} height={hp(20)} stroke="white" />
             </TouchableOpacity>
         </Animated.View>
     );
@@ -272,11 +301,7 @@ export default function VideoDetailsScreen() {
                 activeOpacity={0.6}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <MaterialIcons
-                    name={isFullscreen ? "fullscreen-exit" : "fullscreen"}
-                    size={24}
-                    color="white"
-                />
+                <FullscreenIcon width={wp(16)} height={hp(16)} stroke="white" />
             </TouchableOpacity>
         </Animated.View>
     );
@@ -294,11 +319,18 @@ export default function VideoDetailsScreen() {
                 activeOpacity={0.6}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <MaterialIcons
-                    name={isMuted ? "volume-off" : "volume-up"}
-                    size={24}
-                    color="white"
-                />
+                {isMuted ? (
+                    <View style={styles.unmuteIconContainer}>
+                        <MuteIcon
+                            width={wp(16)}
+                            height={hp(16)}
+                            stroke="white"
+                        />
+                        <View style={styles.unmuteCrossLine} />
+                    </View>
+                ) : (
+                    <MuteIcon width={wp(16)} height={hp(16)} stroke="white" />
+                )}
             </TouchableOpacity>
         </Animated.View>
     );
@@ -317,7 +349,7 @@ export default function VideoDetailsScreen() {
                 activeOpacity={0.6}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <MaterialIcons name="airplay" size={24} color="white" />
+                <AirplayIcon width={wp(20)} height={hp(20)} stroke="white" />
             </TouchableOpacity>
         </Animated.View>
     );
@@ -402,13 +434,15 @@ export default function VideoDetailsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#000",
+        backgroundColor: colors.black,
     },
     videoContainer: {
         width: "100%",
-        aspectRatio: 16 / 9,
-        backgroundColor: "#000",
+        height: hp(280),
+        backgroundColor: colors.black,
         position: "relative",
+        overflow: "visible",
+        zIndex: 1000,
     },
     fullscreenVideoContainer: {
         position: "absolute",
@@ -438,13 +472,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 30,
+        gap: wp(30),
     },
     playButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        width: wp(50),
+        height: hp(50),
+        borderRadius: wp(25),
+        backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -457,10 +491,10 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     seekButton: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        width: wp(32),
+        height: hp(32),
+        borderRadius: wp(16),
+        backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -471,55 +505,63 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        // Increase touch area
-        minWidth: 60,
-        minHeight: 60,
     },
     progressBarContainer: {
         position: "absolute",
         bottom: 0,
         left: 0,
         right: 0,
-        height: 4,
+        height: hp(4),
         justifyContent: "center",
+        overflow: "visible",
     },
     progressBarBackground: {
-        height: 4,
-        backgroundColor: "rgba(255, 255, 255, 0.3)",
+        height: hp(4),
+        backgroundColor: colors.overlay.light,
         position: "relative",
+        overflow: "visible",
     },
     progressBarFill: {
-        height: 4,
-        backgroundColor: "#FF0000",
+        height: hp(4),
+        backgroundColor: colors.alert,
         position: "absolute",
         left: 0,
         top: 0,
     },
+    progressBarThumb: {
+        position: "absolute",
+        top: hp(-4),
+        width: wp(12),
+        height: hp(12),
+        borderRadius: wp(6),
+        backgroundColor: colors.alert,
+        zIndex: 9999,
+    },
     timerContainer: {
         position: "absolute",
-        bottom: 8,
-        left: 12,
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
+        bottom: hp(8),
+        left: wp(12),
+        backgroundColor: colors.overlay.timer,
+        paddingHorizontal: wp(8),
+        paddingVertical: hp(4),
+        borderRadius: wp(4),
     },
     timerText: {
-        color: "white",
-        fontSize: 12,
+        color: colors.white,
+        fontSize: fp(12),
         fontWeight: "500",
         fontFamily: "monospace",
     },
     backButtonContainer: {
         position: "absolute",
-        top: 12,
-        left: 12,
+        top: hp(12),
+        left: wp(12),
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        width: wp(40),
+        height: hp(40),
+        borderRadius: wp(20),
+        backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -533,14 +575,14 @@ const styles = StyleSheet.create({
     },
     fullscreenButtonContainer: {
         position: "absolute",
-        bottom: 12,
-        right: 12,
+        bottom: hp(6),
+        right: wp(6),
     },
     fullscreenButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        width: wp(48),
+        height: hp(48),
+        borderRadius: wp(24),
+        backgroundColor: "transparent",
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -554,14 +596,14 @@ const styles = StyleSheet.create({
     },
     muteButtonContainer: {
         position: "absolute",
-        top: 12,
-        right: 12,
+        top: hp(12),
+        right: wp(60),
     },
     muteButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        width: wp(40),
+        height: hp(40),
+        borderRadius: wp(20),
+        backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -575,14 +617,14 @@ const styles = StyleSheet.create({
     },
     airplayButtonContainer: {
         position: "absolute",
-        top: 12,
-        right: 60,
+        top: hp(12),
+        right: wp(12),
     },
     airplayButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        width: wp(40),
+        height: hp(40),
+        borderRadius: wp(20),
+        backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
         shadowColor: "#000",
@@ -594,43 +636,57 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
+    unmuteIconContainer: {
+        position: "relative",
+        width: wp(32),
+        height: hp(32),
+    },
+    unmuteCrossLine: {
+        position: "absolute",
+        top: hp(15),
+        left: wp(-2),
+        width: wp(36),
+        height: hp(2),
+        backgroundColor: colors.white,
+        transform: [{ rotate: "45deg" }],
+    },
     placeholderContainer: {
         width: "100%",
         aspectRatio: 16 / 9,
-        backgroundColor: "#f0f0f0",
+        backgroundColor: colors.gray.light,
         justifyContent: "center",
         alignItems: "center",
     },
     placeholderText: {
-        fontSize: 16,
-        color: "#666",
+        fontSize: fp(16),
+        color: colors.gray.medium,
         textAlign: "center",
     },
     detailsContainer: {
         flex: 1,
-        padding: 20,
+        padding: wp(20),
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#fff",
+        backgroundColor: colors.white,
     },
     fullscreenDetailsContainer: {
         display: "none",
     },
     title: {
-        fontSize: 24,
+        fontSize: fp(24),
         fontWeight: "bold",
-        marginBottom: 10,
-        color: "#333",
+        marginBottom: hp(10),
+        color: colors.gray.dark,
     },
     subtitle: {
-        fontSize: 16,
-        marginBottom: 20,
-        color: "#666",
+        fontSize: fp(16),
+        marginBottom: hp(20),
+        color: colors.gray.medium,
     },
     placeholder: {
-        fontSize: 14,
+        fontSize: fp(14),
         textAlign: "center",
-        color: "#999",
-        lineHeight: 20,
+        color: colors.gray.placeholder,
+        lineHeight: hp(20),
     },
 });
