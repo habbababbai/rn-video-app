@@ -144,7 +144,9 @@ export default function HomeScreen() {
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.header}>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                    onPress={() => router.push("/(tabs)/search")}
+                >
                     <View style={styles.searchContainer}>
                         <SearchIcon style={styles.searchIcon} />
                         <Text style={styles.searchText}>Search videos</Text>

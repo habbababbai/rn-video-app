@@ -83,15 +83,17 @@ export interface YouTubeVideoDetailsResponse {
 }
 
 /**
- * Fetch videos using the working API structure
+ * Fetch videos using the working API structure with pagination support
  * @param searchTerm - The term to search for
- * @param maxResults - Maximum number of videos to fetch (default: 5)
- * @returns Promise<YouTubeVideo[]> - Array of videos
+ * @param maxResults - Maximum number of videos to fetch (default: 10)
+ * @param pageToken - Token for pagination (optional)
+ * @returns Promise<YouTubeSearchResponse> - Full response with items and pagination info
  */
 export const fetchVideosBySearchTerm = async (
     searchTerm: string,
-    maxResults: number = 5
-): Promise<YouTubeVideo[]> => {
+    maxResults: number = 10,
+    pageToken?: string
+): Promise<YouTubeSearchResponse> => {
     try {
         if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY_HERE") {
             throw new Error(
@@ -100,13 +102,18 @@ export const fetchVideosBySearchTerm = async (
         }
 
         // Use the same working parameter structure as testApiKey
-        const params = {
+        const params: any = {
             part: "snippet",
             q: searchTerm,
             type: "video",
             maxResults: maxResults,
             key: API_KEY,
         };
+
+        // Add pageToken if provided for pagination
+        if (pageToken) {
+            params.pageToken = pageToken;
+        }
 
         const response = await axios.get<YouTubeSearchResponse>(
             `${YOUTUBE_API_BASE_URL}/search`,
@@ -120,7 +127,7 @@ export const fetchVideosBySearchTerm = async (
             }
         );
 
-        return response.data.items;
+        return response.data;
     } catch (error: any) {
         console.error("❌ Error fetching videos:");
         console.error("- Error message:", error.message);
