@@ -4,13 +4,15 @@ import BackwardIcon from "@/assets/images/svg/backward.svg";
 import ForwardIcon from "@/assets/images/svg/forward.svg";
 import FullscreenIcon from "@/assets/images/svg/fullscreen.svg";
 import LeftArrowIcon from "@/assets/images/svg/left-arrow.svg";
+import LikesIcon from "@/assets/images/svg/likes.svg";
 import MuteIcon from "@/assets/images/svg/mute.svg";
 import PauseIcon from "@/assets/images/svg/pause.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
 import PlayIcon from "@/assets/images/svg/play.svg";
+import ViewsIcon from "@/assets/images/svg/views.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
-import { fp, hp, wp } from "@/utils/responsive";
+import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -49,11 +51,23 @@ export default function VideoDetailsScreen() {
     // Tab content components
     const DetailsTab = () => (
         <View style={styles.descriptionContainer}>
+            <Text style={styles.descriptionTitle}>Description</Text>
             <Text style={styles.descriptionText}>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
                 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
                 enim ad minim veniam, quis nostrud exercitation ullamco laboris.
             </Text>
+            <Text style={styles.descriptionTitle}>Statistics</Text>
+            <View style={styles.statisticsContainer}>
+                <View style={styles.statisticsItem}>
+                    <ViewsIcon width={wp(20)} height={hp(20)} stroke="white" />
+                    <Text style={styles.statisticsText}>0 views</Text>
+                </View>
+                <View style={styles.statisticsItem}>
+                    <LikesIcon width={wp(20)} height={hp(20)} stroke="white" />
+                    <Text style={styles.statisticsText}>0 likes</Text>
+                </View>
+            </View>
         </View>
     );
 
@@ -456,7 +470,6 @@ export default function VideoDetailsScreen() {
                     <Text style={styles.channelName}>Channel Name</Text>
                 </View>
 
-                {/* Tab Bar */}
                 <View style={styles.tabBar}>
                     <TouchableOpacity
                         style={[
@@ -465,14 +478,7 @@ export default function VideoDetailsScreen() {
                         ]}
                         onPress={() => setActiveTab("details")}
                     >
-                        <Text
-                            style={[
-                                styles.tabText,
-                                activeTab === "details" && styles.activeTabText,
-                            ]}
-                        >
-                            Details
-                        </Text>
+                        <Text style={[styles.tabText]}>Details</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[
@@ -481,18 +487,10 @@ export default function VideoDetailsScreen() {
                         ]}
                         onPress={() => setActiveTab("notes")}
                     >
-                        <Text
-                            style={[
-                                styles.tabText,
-                                activeTab === "notes" && styles.activeTabText,
-                            ]}
-                        >
-                            Notes
-                        </Text>
+                        <Text style={[styles.tabText]}>Notes</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Tab Content */}
                 <View style={styles.tabContent}>
                     {activeTab === "details" ? <DetailsTab /> : <NotesTab />}
                 </View>
@@ -540,31 +538,40 @@ const styles = StyleSheet.create({
         borderBottomColor: "transparent",
     },
     activeTabButton: {
-        borderBottomColor: colors.alert,
+        borderBottomColor: colors.primary,
     },
     tabText: {
-        fontSize: fp(14),
-        fontFamily: fonts.poppinsMedium,
-        color: colors.gray.medium,
-        fontWeight: "500",
-    },
-    activeTabText: {
-        color: colors.alert,
+        fontSize: fp(12),
+        fontFamily: fonts.poppinsSemiBold,
+        color: colors.primary,
         fontWeight: "600",
     },
+
     tabContent: {
         flex: 1,
-        paddingHorizontal: wp(15),
+        paddingHorizontal: wp(10),
         paddingTop: hp(15),
     },
     descriptionContainer: {
         flex: 1,
     },
     descriptionText: {
-        fontSize: fp(14),
-        fontFamily: fonts.poppinsRegular,
+        fontSize: fp(12),
+        fontFamily: fonts.poppins,
         color: colors.gray.dark,
-        lineHeight: hp(20),
+        lineHeight: hp(12),
+        fontWeight: "400",
+        letterSpacing: wp(0.5),
+        paddingBottom: spacing.xs,
+    },
+    descriptionTitle: {
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(10),
+        lineHeight: hp(12),
+        color: colors.primary,
+        fontWeight: "600",
+        letterSpacing: wp(0.5),
+        paddingVertical: spacing.xs,
     },
     notesContainer: {
         flex: 1,
@@ -573,7 +580,7 @@ const styles = StyleSheet.create({
     },
     notesText: {
         fontSize: fp(14),
-        fontFamily: fonts.poppinsRegular,
+        fontFamily: fonts.poppins,
         color: colors.gray.medium,
         textAlign: "center",
     },
@@ -681,6 +688,32 @@ const styles = StyleSheet.create({
         borderRadius: wp(6),
         backgroundColor: colors.alert,
         zIndex: 9999,
+    },
+    statisticsContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingVertical: spacing.xs,
+    },
+    statisticsItem: {
+        backgroundColor: colors.primary,
+        width: wp(136),
+        height: hp(32),
+        borderRadius: fp(8),
+        justifyContent: "flex-start",
+        alignItems: "center",
+        color: colors.white,
+        flexDirection: "row",
+        paddingHorizontal: wp(10),
+    },
+    statisticsText: {
+        color: colors.white,
+        width: "100%",
+        flex: 1,
+        textAlign: "center",
+        fontFamily: fonts.poppins,
+        fontWeight: "600",
+        fontSize: fp(10),
+        letterSpacing: wp(0.5),
     },
     timerContainer: {
         position: "absolute",
