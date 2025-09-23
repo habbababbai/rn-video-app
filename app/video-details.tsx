@@ -8,6 +8,7 @@ import MuteIcon from "@/assets/images/svg/mute.svg";
 import PauseIcon from "@/assets/images/svg/pause.svg";
 import PlayIcon from "@/assets/images/svg/play.svg";
 import { colors } from "@/constants/colors";
+import { fonts } from "@/constants/fonts";
 import { fp, hp, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -548,9 +549,10 @@ const styles = StyleSheet.create({
     },
     timerText: {
         color: colors.white,
-        fontSize: fp(12),
+        fontSize: fp(10),
         fontWeight: "500",
-        fontFamily: "monospace",
+        fontFamily: fonts.poppinsMedium,
+        letterSpacing: wp(0.5),
     },
     backButtonContainer: {
         position: "absolute",

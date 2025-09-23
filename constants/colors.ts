@@ -13,6 +13,6 @@ export const colors = {
     overlay: {
         dark: "rgba(0, 0, 0, 0.25)",
         light: "rgba(255, 255, 255, 0.3)",
-        timer: "rgba(0, 0, 0, 0.7)",
+        timer: "rgba(0, 0, 0, 0)",
     },
 };
