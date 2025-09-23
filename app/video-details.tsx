@@ -44,7 +44,6 @@ export default function VideoDetailsScreen() {
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
     const router = useRouter();
 
-    // Fetch video details from YouTube API
     const {
         data: videoDetails,
         isLoading,
@@ -99,7 +98,6 @@ export default function VideoDetailsScreen() {
         Keyboard.dismiss();
     }, []);
 
-    // Tab content components
     const DetailsTab = () => {
         if (isLoading) {
             return (
@@ -210,13 +208,11 @@ export default function VideoDetailsScreen() {
         />
     );
 
-    // Auto-hide controls
     const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
     );
     const controlsOpacity = useSharedValue(1);
 
-    // Auto-hide timer
     const startHideTimer = useCallback(() => {
         if (hideControlsTimeoutRef.current) {
             clearTimeout(hideControlsTimeoutRef.current);
@@ -240,7 +236,6 @@ export default function VideoDetailsScreen() {
             if (hideControlsTimeoutRef.current) {
                 clearTimeout(hideControlsTimeoutRef.current);
             }
-            // Restore orientation when component unmounts
             ScreenOrientation.unlockAsync();
         };
     }, []);
@@ -248,10 +243,8 @@ export default function VideoDetailsScreen() {
     const screenWidth = Dimensions.get("window").width;
     const progressBarWidth = screenWidth; // Full screen width
 
-    // Video source logic - always use local placeholder video
     const videoSource = require("@/assets/videos/broadchurch.mp4");
 
-    // Determine if we should show real YouTube data or placeholder data
     const shouldShowRealData =
         videoId !== "placeholder-local-tab" && !error && videoDetails;
 
@@ -305,14 +298,12 @@ export default function VideoDetailsScreen() {
         setCurrentTime(time);
     };
 
-    // Seek backward by 5 seconds
     const seekBackward = () => {
         const newTime = Math.max(0, currentTime - 5);
         seekTo(newTime);
         showControlsAndStartTimer();
     };
 
-    // Seek forward by 5 seconds
     const seekForward = () => {
         const newTime = Math.min(duration, currentTime + 5);
         seekTo(newTime);
@@ -409,7 +400,6 @@ export default function VideoDetailsScreen() {
                         { width: getThumbPosition() },
                     ]}
                 />
-                {/* Red Thumb */}
                 <View
                     style={[
                         styles.progressBarThumb,
@@ -532,7 +522,6 @@ export default function VideoDetailsScreen() {
             <TouchableOpacity
                 style={styles.airplayButton}
                 onPress={() => {
-                    // Airplay functionality
                     console.log("Airplay pressed");
                     showControlsAndStartTimer();
                 }}

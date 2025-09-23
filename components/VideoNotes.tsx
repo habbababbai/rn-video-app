@@ -29,7 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 interface VideoNotesProps {
     videoId: string;
-    currentVideoTime?: number; // Current video playback time in seconds
+    currentVideoTime?: number; 
     onBeginInputFocus?: () => void;
 }
 
@@ -91,7 +91,6 @@ export default function VideoNotes({
             setLongPressActive(noteId);
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-            // Animate overlay fade in
             overlayOpacity.value = withTiming(1, {
                 duration: 300,
                 easing: Easing.out(Easing.quad),
@@ -103,7 +102,6 @@ export default function VideoNotes({
     const handleLongPressEnd = useCallback(() => {
         setLongPressActive(null);
 
-        // Animate overlay fade out
         overlayOpacity.value = withTiming(0, {
             duration: 200,
             easing: Easing.in(Easing.quad),
@@ -115,7 +113,6 @@ export default function VideoNotes({
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             setLongPressActive(null);
 
-            // Reset animations immediately
             overlayOpacity.value = 0;
 
             handleDeleteNote(noteId);
