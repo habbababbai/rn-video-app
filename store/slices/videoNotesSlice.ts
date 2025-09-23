@@ -3,13 +3,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface VideoNote {
     id: string;
     text: string;
-    timestamp: number; // Unix timestamp when note was created
+    timestamp: number; 
     videoId: string;
-    videoTime: number; // Video playback time in seconds when note was created
+    videoTime: number; 
 }
 
 export interface VideoNotesState {
-    // Key: videoId, Value: array of notes for that video
     notesByVideo: Record<string, VideoNote[]>;
 }
 
@@ -58,7 +57,6 @@ const videoNotesSlice = createSlice({
                     videoId
                 ].filter((note) => note.id !== noteId);
 
-                // Remove the video entry if no notes remain
                 if (state.notesByVideo[videoId].length === 0) {
                     delete state.notesByVideo[videoId];
                 }
@@ -96,7 +94,6 @@ const videoNotesSlice = createSlice({
 export const { addNote, deleteNote, editNote, clearAllNotesForVideo } =
     videoNotesSlice.actions;
 
-// Selectors
 export const selectNotesForVideo = (
     state: { videoNotes: VideoNotesState },
     videoId: string
