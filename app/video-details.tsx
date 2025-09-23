@@ -163,8 +163,8 @@ export default function VideoDetailsScreen() {
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                     <BackwardIcon
-                        width={wp(18)}
-                        height={hp(18)}
+                        width={wp(20)}
+                        height={hp(20)}
                         stroke="white"
                     />
                 </TouchableOpacity>
@@ -202,8 +202,8 @@ export default function VideoDetailsScreen() {
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                     <ForwardIcon
-                        width={wp(18)}
-                        height={hp(18)}
+                        width={wp(20)}
+                        height={hp(20)}
                         stroke="white"
                     />
                 </TouchableOpacity>
@@ -492,9 +492,9 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     seekButton: {
-        width: wp(32),
-        height: hp(32),
-        borderRadius: wp(16),
+        width: wp(36),
+        height: hp(36),
+        borderRadius: wp(18),
         backgroundColor: colors.overlay.dark,
         justifyContent: "center",
         alignItems: "center",
