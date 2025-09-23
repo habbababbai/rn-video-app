@@ -8,10 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import {
-    GestureHandlerRootView,
-    PanGestureHandler,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -29,7 +26,6 @@ export default function VideoDetailsScreen() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isSeeking, setIsSeeking] = useState(false);
-    const [dragStartTime, setDragStartTime] = useState(0);
     const [showControls, setShowControls] = useState(true);
 
     // Auto-hide controls
@@ -178,32 +174,6 @@ export default function VideoDetailsScreen() {
                     ]}
                 />
             </TouchableOpacity>
-            <PanGestureHandler
-                onGestureEvent={handleThumbDrag}
-                onHandlerStateChange={(event) => {
-                    const { state } = event.nativeEvent;
-                    if (state === 2) {
-                        // BEGAN
-                        handleThumbDragStart();
-                    } else if (state === 5) {
-                        // END
-                        handleThumbDragEnd();
-                    }
-                }}
-            >
-                <View
-                    style={[
-                        styles.progressThumb,
-                        {
-                            transform: [
-                                {
-                                    translateX: getThumbPosition(),
-                                },
-                            ],
-                        },
-                    ]}
-                />
-            </PanGestureHandler>
         </Animated.View>
     );
 
@@ -214,32 +184,6 @@ export default function VideoDetailsScreen() {
         const newTime = progress * duration;
         seekTo(newTime);
         showControlsAndStartTimer();
-    };
-
-    // Handle thumb drag start
-    const handleThumbDragStart = () => {
-        setIsSeeking(true);
-        setDragStartTime(currentTime);
-        showControlsAndStartTimer();
-    };
-
-    // Handle thumb drag
-    const handleThumbDrag = (event: any) => {
-        const { translationX } = event.nativeEvent;
-        // Convert translation to time change (more natural feeling)
-        const timeChange = (translationX / progressBarWidth) * duration;
-        const newTime = Math.max(
-            0,
-            Math.min(dragStartTime + timeChange, duration)
-        );
-        setCurrentTime(newTime);
-    };
-
-    // Handle thumb drag end
-    const handleThumbDragEnd = () => {
-        seekTo(currentTime);
-        setIsSeeking(false);
-        setDragStartTime(0);
     };
 
     return (
@@ -355,25 +299,6 @@ const styles = StyleSheet.create({
         position: "absolute",
         left: 0,
         top: 0,
-    },
-    progressThumb: {
-        position: "absolute",
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: "#FF0000",
-        borderWidth: 1,
-        borderColor: "white",
-        top: -4,
-        left: -6,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 1,
-        elevation: 2,
     },
     placeholderContainer: {
         width: "100%",
