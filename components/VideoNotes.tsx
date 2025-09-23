@@ -30,11 +30,13 @@ import { useDispatch, useSelector } from "react-redux";
 interface VideoNotesProps {
     videoId: string;
     currentVideoTime?: number; // Current video playback time in seconds
+    onBeginInputFocus?: () => void;
 }
 
 export default function VideoNotes({
     videoId,
     currentVideoTime = 0,
+    onBeginInputFocus,
 }: VideoNotesProps) {
     const dispatch = useDispatch();
     const notes = useSelector((state: RootState) =>
@@ -192,6 +194,12 @@ export default function VideoNotes({
                     multiline
                     textAlignVertical="top"
                     maxLength={500}
+                    onFocus={() => {
+                        onBeginInputFocus && onBeginInputFocus();
+                    }}
+                    onPressIn={() => {
+                        onBeginInputFocus && onBeginInputFocus();
+                    }}
                 />
                 <View style={styles.inputFooter}>
                     <TouchableOpacity

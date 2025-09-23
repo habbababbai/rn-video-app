@@ -62,6 +62,7 @@ export default function VideoDetailsScreen() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
     const keyboardHeight = useSharedValue(0);
+    const lastProgressUpdateRef = useRef(0);
 
     useEffect(() => {
         const keyboardWillShow = Keyboard.addListener(
@@ -197,7 +198,16 @@ export default function VideoDetailsScreen() {
     };
 
     const NotesTab = () => (
-        <VideoNotes videoId={videoId} currentVideoTime={currentTime} />
+        <VideoNotes
+            videoId={videoId}
+            currentVideoTime={currentTime}
+            onBeginInputFocus={() => {
+                if (isPlaying) {
+                    setIsPlaying(false);
+                }
+                showControlsAndStartTimer();
+            }}
+        />
     );
 
     // Auto-hide controls
@@ -274,7 +284,14 @@ export default function VideoDetailsScreen() {
     };
 
     const handleVideoProgress = (data: any) => {
-        setCurrentTime(data.currentTime);
+        const current = data.currentTime as number;
+        if (
+            current - lastProgressUpdateRef.current >= 0.25 ||
+            current < lastProgressUpdateRef.current
+        ) {
+            lastProgressUpdateRef.current = current;
+            setCurrentTime(current);
+        }
     };
 
     useEffect(() => {
@@ -315,7 +332,10 @@ export default function VideoDetailsScreen() {
     }));
 
     const PlayButton = () => (
-        <Animated.View style={[styles.controlsOverlay, controlsAnimatedStyle]}>
+        <Animated.View
+            style={[styles.controlsOverlay, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
+        >
             <View style={styles.controlsRow}>
                 <TouchableOpacity
                     style={styles.seekButton}
@@ -375,6 +395,7 @@ export default function VideoDetailsScreen() {
     const ProgressBar = () => (
         <Animated.View
             style={[styles.progressBarContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.progressBarBackground}
@@ -406,7 +427,10 @@ export default function VideoDetailsScreen() {
     };
 
     const TimerDisplay = () => (
-        <Animated.View style={[styles.timerContainer, controlsAnimatedStyle]}>
+        <Animated.View
+            style={[styles.timerContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
+        >
             <Text style={styles.timerText}>
                 {formatTime(currentTime)} / {formatTime(duration)}
             </Text>
@@ -416,6 +440,7 @@ export default function VideoDetailsScreen() {
     const BackButton = () => (
         <Animated.View
             style={[styles.backButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.backButton}
@@ -441,6 +466,7 @@ export default function VideoDetailsScreen() {
     const FullscreenButton = () => (
         <Animated.View
             style={[styles.fullscreenButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.fullscreenButton}
@@ -471,6 +497,7 @@ export default function VideoDetailsScreen() {
     const MuteButton = () => (
         <Animated.View
             style={[styles.muteButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.muteButton}
@@ -500,6 +527,7 @@ export default function VideoDetailsScreen() {
     const AirplayButton = () => (
         <Animated.View
             style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
+            pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
                 style={styles.airplayButton}
@@ -561,6 +589,7 @@ export default function VideoDetailsScreen() {
                                 resizeMode="contain"
                                 paused={!isPlaying}
                                 muted={isMuted}
+                                progressUpdateInterval={500}
                                 onError={handleVideoError}
                                 onLoad={handleVideoLoad}
                                 onEnd={handleVideoEnd}
