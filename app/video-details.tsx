@@ -20,10 +20,12 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
+    Keyboard,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from "react-native";
 import {
@@ -59,6 +61,42 @@ export default function VideoDetailsScreen() {
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
+    const keyboardHeight = useSharedValue(0);
+
+    useEffect(() => {
+        const keyboardWillShow = Keyboard.addListener(
+            "keyboardWillShow",
+            (event) => {
+                keyboardHeight.value = withTiming(event.endCoordinates.height, {
+                    duration: event.duration || 250,
+                });
+            }
+        );
+
+        const keyboardWillHide = Keyboard.addListener(
+            "keyboardWillHide",
+            (event) => {
+                keyboardHeight.value = withTiming(0, {
+                    duration: event.duration || 250,
+                });
+            }
+        );
+
+        return () => {
+            keyboardWillShow.remove();
+            keyboardWillHide.remove();
+        };
+    }, [keyboardHeight]);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: -keyboardHeight.value }],
+        };
+    });
+
+    const dismissKeyboard = useCallback(() => {
+        Keyboard.dismiss();
+    }, []);
 
     // Tab content components
     const DetailsTab = () => {
@@ -487,107 +525,124 @@ export default function VideoDetailsScreen() {
     };
 
     return (
-        <GestureHandlerRootView
-            style={[styles.container, { paddingTop: insets.top }]}
+        <Animated.View
+            style={[
+                styles.container,
+                { paddingTop: insets.top },
+                animatedStyle,
+            ]}
         >
-            <Stack.Screen
-                options={{
-                    headerShown: false,
-                }}
-            />
-            <StatusBar barStyle="light-content" backgroundColor="black" />
-
-            {videoSource ? (
-                <TouchableOpacity
-                    style={[
-                        styles.videoContainer,
-                        isFullscreen && styles.fullscreenVideoContainer,
-                    ]}
-                    onPress={showControlsAndStartTimer}
-                    activeOpacity={1}
-                >
-                    <Video
-                        ref={videoRef}
-                        source={videoSource}
-                        style={styles.video}
-                        controls={false}
-                        resizeMode="contain"
-                        paused={!isPlaying}
-                        muted={isMuted}
-                        onError={handleVideoError}
-                        onLoad={handleVideoLoad}
-                        onEnd={handleVideoEnd}
-                        onProgress={handleVideoProgress}
+            <TouchableWithoutFeedback onPress={dismissKeyboard}>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                    <Stack.Screen
+                        options={{
+                            headerShown: false,
+                        }}
+                    />
+                    <StatusBar
+                        barStyle="light-content"
+                        backgroundColor="black"
                     />
 
-                    <PlayButton />
-                    <ProgressBar />
-                    <TimerDisplay />
-                    <BackButton />
-                    <AirplayButton />
-                    <MuteButton />
-                    <FullscreenButton />
-                </TouchableOpacity>
-            ) : (
-                <View style={styles.placeholderContainer}>
-                    <Text style={styles.placeholderText}>
-                        Video not available for ID: {videoId}
-                    </Text>
-                </View>
-            )}
+                    {videoSource ? (
+                        <TouchableOpacity
+                            style={[
+                                styles.videoContainer,
+                                isFullscreen && styles.fullscreenVideoContainer,
+                            ]}
+                            onPress={showControlsAndStartTimer}
+                            activeOpacity={1}
+                        >
+                            <Video
+                                ref={videoRef}
+                                source={videoSource}
+                                style={styles.video}
+                                controls={false}
+                                resizeMode="contain"
+                                paused={!isPlaying}
+                                muted={isMuted}
+                                onError={handleVideoError}
+                                onLoad={handleVideoLoad}
+                                onEnd={handleVideoEnd}
+                                onProgress={handleVideoProgress}
+                            />
 
-            <View
-                style={[
-                    styles.detailsContainer,
-                    isFullscreen && styles.fullscreenDetailsContainer,
-                ]}
-            >
-                <Text numberOfLines={1} style={styles.title}>
-                    {shouldShowRealData
-                        ? videoDetails.snippet.title
-                        : "Placeholder Video Name"}
-                </Text>
-                <View style={styles.channelDetailsContainer}>
-                    <View style={styles.accountIconContainer}>
-                        <PersonIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            fill="white"
-                        />
+                            <PlayButton />
+                            <ProgressBar />
+                            <TimerDisplay />
+                            <BackButton />
+                            <AirplayButton />
+                            <MuteButton />
+                            <FullscreenButton />
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={styles.placeholderContainer}>
+                            <Text style={styles.placeholderText}>
+                                Video not available for ID: {videoId}
+                            </Text>
+                        </View>
+                    )}
+
+                    <View
+                        style={[
+                            styles.detailsContainer,
+                            isFullscreen && styles.fullscreenDetailsContainer,
+                        ]}
+                    >
+                        <Text numberOfLines={1} style={styles.title}>
+                            {shouldShowRealData
+                                ? videoDetails.snippet.title
+                                : "Placeholder Video Name"}
+                        </Text>
+                        <View style={styles.channelDetailsContainer}>
+                            <View style={styles.accountIconContainer}>
+                                <PersonIcon
+                                    width={wp(24)}
+                                    height={hp(24)}
+                                    fill="white"
+                                />
+                            </View>
+                            <Text style={styles.channelName}>
+                                {shouldShowRealData
+                                    ? videoDetails.snippet.channelTitle
+                                    : "ITV Drama"}
+                            </Text>
+                        </View>
+
+                        <View style={styles.tabBar}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.tabButton,
+                                    activeTab === "details" &&
+                                        styles.activeTabButton,
+                                ]}
+                                onPress={() => setActiveTab("details")}
+                            >
+                                <Text style={[styles.tabText]}>Details</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.tabButton,
+                                    activeTab === "notes" &&
+                                        styles.activeTabButton,
+                                ]}
+                                onPress={() => setActiveTab("notes")}
+                            >
+                                <Text style={[styles.tabText]}>Notes</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.tabContent}>
+                            {activeTab === "details" ? (
+                                <DetailsTab />
+                            ) : (
+                                <NotesTab />
+                            )}
+                        </View>
                     </View>
-                    <Text style={styles.channelName}>
-                        {shouldShowRealData
-                            ? videoDetails.snippet.channelTitle
-                            : "ITV Drama"}
-                    </Text>
-                </View>
-
-                <View style={styles.tabBar}>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === "details" && styles.activeTabButton,
-                        ]}
-                        onPress={() => setActiveTab("details")}
-                    >
-                        <Text style={[styles.tabText]}>Details</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[
-                            styles.tabButton,
-                            activeTab === "notes" && styles.activeTabButton,
-                        ]}
-                        onPress={() => setActiveTab("notes")}
-                    >
-                        <Text style={[styles.tabText]}>Notes</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.tabContent}>
-                    {activeTab === "details" ? <DetailsTab /> : <NotesTab />}
-                </View>
-            </View>
-        </GestureHandlerRootView>
+                </GestureHandlerRootView>
+            </TouchableWithoutFeedback>
+        </Animated.View>
     );
 }
 

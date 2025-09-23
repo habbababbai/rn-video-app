@@ -8,6 +8,7 @@ import {
     VideoNote,
 } from "@/store/slices/videoNotesSlice";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
+import * as Haptics from "expo-haptics";
 import React, { useCallback, useState } from "react";
 import {
     Alert,
@@ -18,6 +19,12 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 
 interface VideoNotesProps {
@@ -34,6 +41,8 @@ export default function VideoNotes({
         selectNotesForVideo(state, videoId)
     );
     const [newNoteText, setNewNoteText] = useState("");
+    const [longPressActive, setLongPressActive] = useState<string | null>(null);
+    const overlayOpacity = useSharedValue(0);
 
     const handleAddNote = useCallback(() => {
         const trimmedText = newNoteText.trim();
@@ -75,19 +84,74 @@ export default function VideoNotes({
         [dispatch, videoId]
     );
 
+    const handleLongPressStart = useCallback(
+        (noteId: string) => {
+            setLongPressActive(noteId);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+            // Animate overlay fade in
+            overlayOpacity.value = withTiming(1, {
+                duration: 300,
+                easing: Easing.out(Easing.quad),
+            });
+        },
+        [overlayOpacity]
+    );
+
+    const handleLongPressEnd = useCallback(() => {
+        setLongPressActive(null);
+
+        // Animate overlay fade out
+        overlayOpacity.value = withTiming(0, {
+            duration: 200,
+            easing: Easing.in(Easing.quad),
+        });
+    }, [overlayOpacity]);
+
+    const handleLongPress = useCallback(
+        (noteId: string) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            setLongPressActive(null);
+
+            // Reset animations immediately
+            overlayOpacity.value = 0;
+
+            handleDeleteNote(noteId);
+        },
+        [handleDeleteNote, overlayOpacity]
+    );
+
     const formatVideoTime = (videoTime: number) => {
         const minutes = Math.floor(videoTime / 60);
         const seconds = videoTime % 60;
         return `${minutes}:${seconds.toString().padStart(2, "0")}`;
     };
 
+    const animatedOverlayStyle = useAnimatedStyle(() => {
+        return {
+            opacity: overlayOpacity.value,
+        };
+    });
+
     const renderNoteItem = ({ item }: { item: VideoNote }) => (
         <TouchableOpacity
-            style={styles.noteItem}
-            onLongPress={() => handleDeleteNote(item.id)}
+            style={[
+                styles.noteItem,
+                longPressActive === item.id && styles.noteItemLongPress,
+            ]}
+            onLongPress={() => handleLongPress(item.id)}
+            onPressIn={() => handleLongPressStart(item.id)}
+            onPressOut={handleLongPressEnd}
             delayLongPress={1000}
             activeOpacity={0.7}
         >
+            {longPressActive === item.id && (
+                <Animated.View
+                    style={[styles.longPressOverlay, animatedOverlayStyle]}
+                >
+                    <Text style={styles.longPressText}>Hold to delete</Text>
+                </Animated.View>
+            )}
             <Text style={styles.noteText}>{item.text}</Text>
             <View style={styles.timestampContainer}>
                 <Text style={styles.noteTimestamp}>
@@ -115,6 +179,7 @@ export default function VideoNotes({
                 contentContainerStyle={styles.notesListContent}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={renderEmptyState}
+                keyboardShouldPersistTaps="handled"
             />
 
             <View style={styles.inputContainer}>
@@ -175,6 +240,45 @@ const styles = StyleSheet.create({
         borderColor: colors.primary + "20",
         width: wp(361),
         alignSelf: "center",
+        position: "relative",
+        overflow: "hidden",
+    },
+    noteItemLongPress: {
+        backgroundColor: "#f8f9fa",
+        borderColor: "#6b7280",
+        borderWidth: wp(1.5),
+        shadowColor: "#6b7280",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    longPressOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(107, 114, 128, 0.15)",
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: fp(12),
+        zIndex: 1,
+    },
+    longPressText: {
+        color: "#374151",
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(12),
+        fontWeight: "600",
+        textAlign: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        paddingHorizontal: wp(8),
+        paddingVertical: hp(4),
+        borderRadius: fp(8),
+        overflow: "hidden",
     },
     timestampContainer: {
         alignItems: "flex-end",
