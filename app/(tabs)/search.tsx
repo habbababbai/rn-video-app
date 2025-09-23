@@ -107,6 +107,30 @@ export default function SearchScreen() {
         }
     };
 
+    const renderPlaceholderVideo = () => (
+        <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.placeholderVideoItem}>
+                <View style={styles.placeholderThumbnail}>
+                    <Text style={styles.placeholderText}>Local Tab</Text>
+                </View>
+                <View style={styles.placeholderVideoInfo}>
+                    <Text
+                        style={styles.placeholderVideoTitle}
+                        numberOfLines={2}
+                    >
+                        Local Tab - Test Video
+                    </Text>
+                    <Text
+                        style={styles.placeholderVideoUploadDate}
+                        numberOfLines={1}
+                    >
+                        {new Date().toLocaleDateString()}
+                    </Text>
+                </View>
+            </View>
+        </TouchableWithoutFeedback>
+    );
+
     const renderVideoItem = ({ item }: { item: YouTubeVideo }) => (
         <TouchableWithoutFeedback
             onPress={() =>
@@ -162,8 +186,11 @@ export default function SearchScreen() {
 
         if (isError) {
             return (
-                <View style={styles.emptyState}>
-                    <Text style={styles.errorText}>Failed to load videos</Text>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>Unable to load videos</Text>
+                    <View style={styles.placeholderVideosContainer}>
+                        {renderPlaceholderVideo()}
+                    </View>
                     <TouchableWithoutFeedback onPress={() => refetch()}>
                         <Text style={styles.retryText}>Tap to retry</Text>
                     </TouchableWithoutFeedback>
@@ -459,5 +486,62 @@ const styles = StyleSheet.create({
     sortOrderBold: {
         fontFamily: fonts.poppinsSemiBold,
         fontWeight: "600",
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: wp(20),
+    },
+    placeholderVideosContainer: {
+        marginVertical: hp(20),
+        width: "100%",
+    },
+    placeholderVideoItem: {
+        width: "100%",
+        marginBottom: hp(12),
+        overflow: "hidden",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+        elevation: 5,
+        borderRadius: fp(16),
+        backgroundColor: colors.white,
+    },
+    placeholderThumbnail: {
+        width: "100%",
+        height: hp(200),
+        backgroundColor: colors.primary,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: fp(16),
+    },
+    placeholderText: {
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(16),
+        color: colors.white,
+        fontWeight: "600",
+    },
+    placeholderVideoInfo: {
+        padding: hp(12),
+    },
+    placeholderVideoTitle: {
+        fontFamily: fonts.poppinsMedium,
+        fontSize: fp(14),
+        fontWeight: "500",
+        color: colors.primary,
+        lineHeight: hp(18),
+        letterSpacing: wp(0.5),
+        marginBottom: hp(4),
+    },
+    placeholderVideoUploadDate: {
+        fontFamily: fonts.poppins,
+        fontSize: fp(12),
+        color: colors.primary,
+        letterSpacing: wp(0.5),
     },
 });
