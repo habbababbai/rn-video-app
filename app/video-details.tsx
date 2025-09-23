@@ -107,6 +107,20 @@ export default function VideoDetailsScreen() {
         setCurrentTime(time);
     };
 
+    // Seek backward by 5 seconds
+    const seekBackward = () => {
+        const newTime = Math.max(0, currentTime - 5);
+        seekTo(newTime);
+        showControlsAndStartTimer();
+    };
+
+    // Seek forward by 5 seconds
+    const seekForward = () => {
+        const newTime = Math.min(duration, currentTime + 5);
+        seekTo(newTime);
+        showControlsAndStartTimer();
+    };
+
     const getProgress = () => {
         return duration > 0 ? currentTime / duration : 0;
     };
@@ -121,23 +135,47 @@ export default function VideoDetailsScreen() {
 
     const PlayButton = () => (
         <Animated.View style={[styles.controlsOverlay, controlsAnimatedStyle]}>
-            <TouchableOpacity
-                style={styles.playButton}
-                onPress={handlePlayPause}
-                activeOpacity={0.8}
-            >
-                <MaterialIcons
-                    name={
-                        isFinished
-                            ? "replay"
-                            : isPlaying
-                            ? "pause"
-                            : "play-arrow"
-                    }
-                    size={64}
-                    color="white"
-                />
-            </TouchableOpacity>
+            <View style={styles.controlsRow}>
+                {/* Backward Button */}
+                <TouchableOpacity
+                    style={styles.seekButton}
+                    onPress={seekBackward}
+                    activeOpacity={0.6}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <MaterialIcons name="replay-5" size={36} color="white" />
+                </TouchableOpacity>
+
+                {/* Play/Pause Button */}
+                <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={handlePlayPause}
+                    activeOpacity={0.6}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <MaterialIcons
+                        name={
+                            isFinished
+                                ? "replay"
+                                : isPlaying
+                                ? "pause"
+                                : "play-arrow"
+                        }
+                        size={64}
+                        color="white"
+                    />
+                </TouchableOpacity>
+
+                {/* Forward Button */}
+                <TouchableOpacity
+                    style={styles.seekButton}
+                    onPress={seekForward}
+                    activeOpacity={0.6}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <MaterialIcons name="forward-5" size={36} color="white" />
+                </TouchableOpacity>
+            </View>
         </Animated.View>
     );
 
@@ -157,6 +195,21 @@ export default function VideoDetailsScreen() {
                     ]}
                 />
             </TouchableOpacity>
+        </Animated.View>
+    );
+
+    // Format time helper function
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+    };
+
+    const TimerDisplay = () => (
+        <Animated.View style={[styles.timerContainer, controlsAnimatedStyle]}>
+            <Text style={styles.timerText}>
+                {formatTime(currentTime)} / {formatTime(duration)}
+            </Text>
         </Animated.View>
     );
 
@@ -198,6 +251,7 @@ export default function VideoDetailsScreen() {
 
                     <PlayButton />
                     <ProgressBar />
+                    <TimerDisplay />
                 </TouchableOpacity>
             ) : (
                 <View style={styles.placeholderContainer}>
@@ -246,6 +300,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "rgba(0, 0, 0, 0.1)",
     },
+    controlsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 30,
+    },
     playButton: {
         width: 80,
         height: 80,
@@ -261,6 +321,25 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
+    },
+    seekButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        justifyContent: "center",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        // Increase touch area
+        minWidth: 60,
+        minHeight: 60,
     },
     progressBarContainer: {
         position: "absolute",
@@ -281,6 +360,21 @@ const styles = StyleSheet.create({
         position: "absolute",
         left: 0,
         top: 0,
+    },
+    timerContainer: {
+        position: "absolute",
+        bottom: 8,
+        left: 12,
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+    },
+    timerText: {
+        color: "white",
+        fontSize: 12,
+        fontWeight: "500",
+        fontFamily: "monospace",
     },
     placeholderContainer: {
         width: "100%",
