@@ -130,7 +130,11 @@ export default function HomeScreen() {
                 <View style={styles.section}>
                     <View style={styles.sectionTitleContainer}>
                         <Text style={styles.sectionTitle}>{keyword}</Text>
-                        <Text style={styles.showMoreText}>Show more</Text>
+                        <TouchableWithoutFeedback 
+                            onPress={() => router.push(`/(tabs)/search?keyword=${encodeURIComponent(keyword)}`)}
+                        >
+                            <Text style={styles.showMoreText}>Show more</Text>
+                        </TouchableWithoutFeedback>
                     </View>
                     {query.isLoading ? (
                         <LoadingComponent />

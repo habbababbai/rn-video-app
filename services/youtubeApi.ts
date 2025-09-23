@@ -82,7 +82,7 @@ export interface YouTubeVideoDetailsResponse {
     items: YouTubeVideoDetails[];
 }
 
-export type SortOrder = 'relevance' | 'date' | 'rating' | 'viewCount' | 'title';
+export type SortOrder = "relevance" | "date" | "rating" | "viewCount" | "title";
 
 /**
  * Fetch videos using the working API structure with pagination support
@@ -96,7 +96,7 @@ export const fetchVideosBySearchTerm = async (
     searchTerm: string,
     maxResults: number = 10,
     pageToken?: string,
-    order: SortOrder = 'relevance'
+    order: SortOrder = "relevance"
 ): Promise<YouTubeSearchResponse> => {
     try {
         if (!API_KEY || API_KEY === "YOUR_YOUTUBE_API_KEY_HERE") {

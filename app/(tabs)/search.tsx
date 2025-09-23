@@ -4,7 +4,7 @@ import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearchInfinite } from "@/hooks/useYouTubeApi";
 import { SortOrder, YouTubeVideo } from "@/services/youtubeApi";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -21,8 +21,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchTerm, setSearchTerm] = useState("React Native"); // Default search term
+    const { keyword } = useLocalSearchParams<{ keyword?: string }>();
+    const [searchQuery, setSearchQuery] = useState(keyword || "React Native"); // Show default search in input
+    const [searchTerm, setSearchTerm] = useState(keyword || "React Native"); // Use keyword from URL or default
     const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
@@ -39,6 +40,14 @@ export default function SearchScreen() {
             return () => clearTimeout(timer);
         }, [])
     );
+
+    // Handle keyword parameter changes
+    React.useEffect(() => {
+        if (keyword && keyword !== searchTerm) {
+            setSearchTerm(keyword);
+            setSearchQuery(keyword);
+        }
+    }, [keyword, searchTerm]);
 
     const {
         data,
