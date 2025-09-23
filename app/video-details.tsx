@@ -671,14 +671,14 @@ const styles = StyleSheet.create({
     },
     unmuteIconContainer: {
         position: "relative",
-        width: wp(32),
-        height: hp(32),
+        width: wp(16),
+        height: hp(16),
     },
     unmuteCrossLine: {
         position: "absolute",
-        top: hp(15),
+        top: hp(7),
         left: wp(-2),
-        width: wp(36),
+        width: wp(20),
         height: hp(2),
         backgroundColor: colors.white,
         transform: [{ rotate: "45deg" }],
