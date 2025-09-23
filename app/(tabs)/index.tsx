@@ -26,10 +26,22 @@ export default function HomeScreen() {
 
     const keywords = ["React Native", "React", "TypeScript", "Javascript"];
 
-    const reactNativeQuery = useYouTubeVideosBySearch("React Native", 5);
-    const reactQuery = useYouTubeVideosBySearch("React", 5);
-    const typescriptQuery = useYouTubeVideosBySearch("TypeScript", 5);
-    const javascriptQuery = useYouTubeVideosBySearch("Javascript", 5);
+    const reactNativeQuery = useYouTubeVideosBySearch(
+        "React Native",
+        5,
+        "relevance"
+    );
+    const reactQuery = useYouTubeVideosBySearch("React", 5, "relevance");
+    const typescriptQuery = useYouTubeVideosBySearch(
+        "TypeScript",
+        5,
+        "relevance"
+    );
+    const javascriptQuery = useYouTubeVideosBySearch(
+        "Javascript",
+        5,
+        "relevance"
+    );
 
     const queries = [
         reactNativeQuery,
@@ -118,7 +130,11 @@ export default function HomeScreen() {
                 <View style={styles.section}>
                     <View style={styles.sectionTitleContainer}>
                         <Text style={styles.sectionTitle}>{keyword}</Text>
-                        <Text style={styles.showMoreText}>Show more</Text>
+                        <TouchableWithoutFeedback 
+                            onPress={() => router.push(`/(tabs)/search?keyword=${encodeURIComponent(keyword)}`)}
+                        >
+                            <Text style={styles.showMoreText}>Show more</Text>
+                        </TouchableWithoutFeedback>
                     </View>
                     {query.isLoading ? (
                         <LoadingComponent />
@@ -144,7 +160,9 @@ export default function HomeScreen() {
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.header}>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                    onPress={() => router.push("/(tabs)/search")}
+                >
                     <View style={styles.searchContainer}>
                         <SearchIcon style={styles.searchIcon} />
                         <Text style={styles.searchText}>Search videos</Text>
