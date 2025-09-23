@@ -2,17 +2,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import authReducer from "./slices/authSlice";
+import reminderReducer from "./slices/reminderSlice";
 import videoNotesReducer from "./slices/videoNotesSlice";
 
 const persistConfig = {
     key: "root",
     storage: AsyncStorage,
-    whitelist: ["auth", "videoNotes"], // Persist auth and video notes
+    whitelist: ["auth", "videoNotes", "reminder"], // Persist auth, video notes, reminder
 };
 
 const rootReducer = combineReducers({
     auth: authReducer,
     videoNotes: videoNotesReducer,
+    reminder: reminderReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -1,28 +1,148 @@
-import LeftArrowIcon from "@/assets/images/svg/left-arrow.svg";
+import LeftArrowIcon from "@/assets/images/svg/arrow-left.svg";
+import BellIcon from "@/assets/images/svg/bell.svg";
+import ClockIcon from "@/assets/images/svg/clock.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
+import { RootState } from "@/store";
+import {
+    setEnabled as setReminderEnabledAction,
+    setNotificationId as setReminderNotificationId,
+    setTime as setReminderTime,
+} from "@/store/slices/reminderSlice";
 import { fp, hp, wp } from "@/utils/responsive";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import {
+    Alert,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Switch,
+    Text,
+    View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function SettingsScreen() {
+    const dispatch = useDispatch();
+
+    const reminderState = useSelector((state: RootState) => state.reminder);
+
     const [reminderEnabled, setReminderEnabled] = useState(false);
     const [time, setTime] = useState<Date>(new Date());
-    const [showPicker, setShowPicker] = useState(false);
 
-    const onChangeTime = (_: any, selectedDate?: Date) => {
+    React.useEffect(() => {
+        setReminderEnabled(reminderState.enabled);
+        const initial = new Date();
+        initial.setHours(reminderState.hour, reminderState.minute, 0, 0);
+        setTime(initial);
+    }, [reminderState.enabled, reminderState.hour, reminderState.minute]);
+
+    React.useEffect(() => {
+        if (Platform.OS === "android") {
+            Notifications.setNotificationChannelAsync("default", {
+                name: "Default",
+                importance: Notifications.AndroidImportance.DEFAULT,
+            }).catch(() => {});
+        }
+    }, []);
+
+    const scheduleDailyReminder = async (
+        hour: number,
+        minute: number
+    ): Promise<string> => {
+        const trigger = {
+            type: "calendar" as const,
+            repeats: true,
+            hour,
+            minute,
+            ...(Platform.OS === "android" ? { channelId: "default" } : {}),
+        } as unknown as Notifications.NotificationTriggerInput;
+
+        const id = await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "YoutubeLearn",
+                body: "Reminder for daily study!",
+                sound: true,
+            },
+            trigger,
+        });
+        return id;
+    };
+
+    const cancelScheduledReminder = async (notificationId?: string | null) => {
+        if (notificationId) {
+            try {
+                await Notifications.cancelScheduledNotificationAsync(
+                    notificationId
+                );
+            } catch {}
+        }
+    };
+
+    const requestPermissionIfNeeded = async (): Promise<boolean> => {
+        let perms = await Notifications.getPermissionsAsync();
+        if (!perms.granted) {
+            perms = await Notifications.requestPermissionsAsync();
+        }
+        if (!perms.granted) {
+            Alert.alert(
+                "Notifications disabled",
+                "Enable notifications in settings to receive reminders."
+            );
+            return false;
+        }
+        return true;
+    };
+
+    const handleToggleReminder = async (value: boolean) => {
+        if (value) {
+            const ok = await requestPermissionIfNeeded();
+            if (!ok) {
+                setReminderEnabled(false);
+                dispatch(setReminderEnabledAction(false));
+                return;
+            }
+            const id = await scheduleDailyReminder(
+                time.getHours(),
+                time.getMinutes()
+            );
+            dispatch(setReminderNotificationId(id));
+            setReminderEnabled(true);
+            dispatch(setReminderEnabledAction(true));
+        } else {
+            await cancelScheduledReminder(reminderState.notificationId);
+            dispatch(setReminderNotificationId(null));
+            setReminderEnabled(false);
+            dispatch(setReminderEnabledAction(false));
+        }
+    };
+
+    const onChangeTime = async (_: any, selectedDate?: Date) => {
         const currentDate = selectedDate ?? time;
         setTime(currentDate);
-        setShowPicker(false);
+        dispatch(
+            setReminderTime({
+                hour: currentDate.getHours(),
+                minute: currentDate.getMinutes(),
+            })
+        );
+        if (reminderEnabled) {
+            await cancelScheduledReminder(reminderState.notificationId);
+            const id = await scheduleDailyReminder(
+                currentDate.getHours(),
+                currentDate.getMinutes()
+            );
+            dispatch(setReminderNotificationId(id));
+        }
     };
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
-            {/* Header with back arrow and title */}
             <View style={styles.headerRow}>
                 <Pressable onPress={() => router.back()} hitSlop={8}>
                     <LeftArrowIcon width={fp(18)} height={fp(18)} />
@@ -30,8 +150,6 @@ export default function SettingsScreen() {
                 <Text style={styles.headerTitle}>Settings</Text>
                 <View style={{ width: fp(18) }} />
             </View>
-
-            {/* Avatar and name */}
             <View style={styles.avatarSection}>
                 <View style={styles.avatarCircle}>
                     <PersonIcon width={fp(28)} height={fp(28)} />
@@ -39,40 +157,25 @@ export default function SettingsScreen() {
                 <Text style={styles.userName}>Your Name</Text>
             </View>
 
-            {/* Divider */}
             <View style={styles.divider} />
-
-            {/* Learning reminders */}
+            <BellIcon width={fp(24)} height={fp(24)} />
             <Text style={styles.sectionTitle}>Learning reminders</Text>
 
-            {/* Row: Repeat everyday at: [time picker] [toggle] */}
             <View style={styles.reminderRow}>
                 <Text style={styles.reminderLabel}>Repeat everyday at:</Text>
 
-                {showPicker ? (
-                    <DateTimePicker
-                        value={time}
-                        mode="time"
-                        display="default"
-                        onChange={onChangeTime}
-                    />
-                ) : (
-                    <Pressable
-                        onPress={() => setShowPicker(true)}
-                        style={styles.timeButton}
-                    >
-                        <Text style={styles.timeButtonText}>
-                            {time.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </Text>
-                    </Pressable>
-                )}
+                <ClockIcon width={fp(24)} height={fp(24)} />
+
+                <DateTimePicker
+                    value={time}
+                    mode="time"
+                    display="default"
+                    onChange={onChangeTime}
+                />
 
                 <Switch
                     value={reminderEnabled}
-                    onValueChange={setReminderEnabled}
+                    onValueChange={handleToggleReminder}
                     thumbColor={reminderEnabled ? colors.white : colors.white}
                     trackColor={{
                         false: colors.gray.light,
@@ -80,8 +183,6 @@ export default function SettingsScreen() {
                     }}
                 />
             </View>
-
-            {/* Picker rendered inline above when showPicker is true */}
 
             <Text style={styles.helperText}>
                 you will receive friendly reminder to remember to study
