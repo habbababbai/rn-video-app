@@ -7,7 +7,7 @@ import {
     selectNotesForVideo,
     VideoNote,
 } from "@/store/slices/videoNotesSlice";
-import { fp, hp, wp } from "@/utils/responsive";
+import { fp, hp, spacing, wp } from "@/utils/responsive";
 import React, { useCallback, useState } from "react";
 import {
     Alert,
@@ -54,7 +54,7 @@ export default function VideoNotes({
             addNote({ videoId, text: trimmedText, videoTime: currentVideoTime })
         );
         setNewNoteText("");
-    }, [dispatch, videoId, newNoteText]);
+    }, [newNoteText, dispatch, videoId, currentVideoTime]);
 
     const handleDeleteNote = useCallback(
         (noteId: string) => {
@@ -75,18 +75,6 @@ export default function VideoNotes({
         [dispatch, videoId]
     );
 
-    const formatTimestamp = (timestamp: number) => {
-        const date = new Date(timestamp);
-        return (
-            date.toLocaleDateString() +
-            " " +
-            date.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-            })
-        );
-    };
-
     const formatVideoTime = (videoTime: number) => {
         const minutes = Math.floor(videoTime / 60);
         const seconds = videoTime % 60;
@@ -94,25 +82,19 @@ export default function VideoNotes({
     };
 
     const renderNoteItem = ({ item }: { item: VideoNote }) => (
-        <View style={styles.noteItem}>
-            <View style={styles.noteHeader}>
-                <View style={styles.noteTimeInfo}>
-                    <Text style={styles.noteVideoTime}>
-                        {formatVideoTime(item.videoTime)}
-                    </Text>
-                    <Text style={styles.noteTimestamp}>
-                        {formatTimestamp(item.timestamp)}
-                    </Text>
-                </View>
-                <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => handleDeleteNote(item.id)}
-                >
-                    <Text style={styles.deleteButtonText}>×</Text>
-                </TouchableOpacity>
-            </View>
+        <TouchableOpacity
+            style={styles.noteItem}
+            onLongPress={() => handleDeleteNote(item.id)}
+            delayLongPress={1000}
+            activeOpacity={0.7}
+        >
             <Text style={styles.noteText}>{item.text}</Text>
-        </View>
+            <View style={styles.timestampContainer}>
+                <Text style={styles.noteTimestamp}>
+                    {formatVideoTime(item.videoTime)}
+                </Text>
+            </View>
+        </TouchableOpacity>
     );
 
     const renderEmptyState = () => (
@@ -138,7 +120,7 @@ export default function VideoNotes({
             <View style={styles.inputContainer}>
                 <TextInput
                     style={styles.textInput}
-                    placeholder="Add a note about this video..."
+                    placeholder="Enter notes..."
                     placeholderTextColor={colors.primary + "80"}
                     value={newNoteText}
                     onChangeText={setNewNoteText}
@@ -147,9 +129,6 @@ export default function VideoNotes({
                     maxLength={500}
                 />
                 <View style={styles.inputFooter}>
-                    <Text style={styles.characterCount}>
-                        {newNoteText.length}/500
-                    </Text>
                     <TouchableOpacity
                         style={[
                             styles.addButton,
@@ -184,72 +163,42 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     notesListContent: {
-        padding: wp(16),
+        paddingHorizontal: wp(16),
         paddingBottom: hp(10),
+        alignItems: "center",
     },
     noteItem: {
         backgroundColor: colors.white,
         borderRadius: fp(12),
-        padding: wp(16),
         marginBottom: hp(12),
         borderWidth: wp(1),
         borderColor: colors.primary + "20",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 3,
+        width: wp(361),
+        alignSelf: "center",
     },
-    noteHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: hp(8),
-    },
-    noteTimeInfo: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    noteVideoTime: {
-        fontFamily: fonts.poppinsSemiBold,
-        fontSize: fp(14),
-        color: colors.primary,
-        fontWeight: "600",
-        marginRight: wp(8),
-        backgroundColor: colors.primary + "15",
-        paddingHorizontal: wp(8),
-        paddingVertical: hp(2),
-        borderRadius: fp(4),
+    timestampContainer: {
+        alignItems: "flex-end",
+        marginTop: hp(8),
     },
     noteTimestamp: {
-        fontFamily: fonts.poppins,
-        fontSize: fp(11),
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(10),
+        fontWeight: "600",
+        letterSpacing: wp(0.5),
+
         color: colors.primary,
-        opacity: 0.6,
-    },
-    deleteButton: {
-        width: wp(24),
-        height: hp(24),
-        borderRadius: wp(12),
-        backgroundColor: colors.alert,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    deleteButtonText: {
-        color: colors.white,
-        fontSize: fp(16),
-        fontFamily: fonts.poppinsBold,
-        fontWeight: "bold",
+        paddingRight: spacing.xs,
+        paddingBottom: spacing.xs,
     },
     noteText: {
+        paddingHorizontal: spacing.sm,
+        paddingTop: spacing.sm,
         fontFamily: fonts.poppins,
-        fontSize: fp(14),
+        fontSize: fp(12),
+        fontWeight: "400",
+        letterSpacing: wp(0.75),
+        lineHeight: hp(12),
         color: colors.primary,
-        lineHeight: hp(20),
-        letterSpacing: wp(0.3),
     },
     emptyState: {
         flex: 1,
@@ -259,34 +208,32 @@ const styles = StyleSheet.create({
     },
     emptyStateText: {
         fontFamily: fonts.poppins,
-        fontSize: fp(16),
+        fontSize: fp(12),
         color: colors.primary,
-        opacity: 0.6,
         textAlign: "center",
     },
     inputContainer: {
         backgroundColor: colors.white,
-        borderTopWidth: wp(1),
-        borderTopColor: colors.primary + "20",
         padding: wp(16),
+        alignSelf: "center",
     },
     textInput: {
         fontFamily: fonts.poppins,
-        fontSize: fp(16),
+        fontSize: fp(12),
         color: colors.primary,
         backgroundColor: colors.white,
         borderWidth: wp(1),
         borderColor: colors.primary + "30",
         borderRadius: fp(12),
-        padding: wp(16),
-        minHeight: hp(100),
-        maxHeight: hp(150),
+        padding: spacing.xs,
+        height: hp(60),
         textAlignVertical: "top",
         letterSpacing: wp(0.3),
+        width: wp(361),
     },
     inputFooter: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "center",
         alignItems: "center",
         marginTop: hp(12),
     },
@@ -301,6 +248,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(24),
         paddingVertical: hp(12),
         borderRadius: fp(8),
+        width: wp(256),
     },
     addButtonDisabled: {
         backgroundColor: colors.primary + "40",
@@ -310,6 +258,8 @@ const styles = StyleSheet.create({
         fontSize: fp(14),
         color: colors.white,
         fontWeight: "600",
+        textAlign: "center",
+        letterSpacing: wp(0.5),
     },
     addButtonTextDisabled: {
         color: colors.white + "80",

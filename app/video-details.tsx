@@ -641,7 +641,6 @@ const styles = StyleSheet.create({
 
     tabContent: {
         flex: 1,
-        paddingHorizontal: wp(10),
         paddingTop: hp(15),
         width: "100%",
     },
