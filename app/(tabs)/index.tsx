@@ -29,18 +29,18 @@ export default function HomeScreen() {
     const reactNativeQuery = useYouTubeVideosBySearch(
         "React Native",
         5,
-        "relevance"
+        "popular"
     );
-    const reactQuery = useYouTubeVideosBySearch("React", 5, "relevance");
+    const reactQuery = useYouTubeVideosBySearch("React", 5, "popular");
     const typescriptQuery = useYouTubeVideosBySearch(
         "TypeScript",
         5,
-        "relevance"
+        "popular"
     );
     const javascriptQuery = useYouTubeVideosBySearch(
         "Javascript",
         5,
-        "relevance"
+        "popular"
     );
 
     const queries = [
@@ -102,12 +102,17 @@ export default function HomeScreen() {
                     <Text style={styles.placeholderText}>Local Tab</Text>
                 </View>
                 <View style={styles.videoInfo}>
+                    <Text style={styles.channelName} numberOfLines={1}>
+                        Local Channel
+                    </Text>
                     <Text style={styles.videoTitle} numberOfLines={2}>
                         Local Tab - Test Video
                     </Text>
-                    <Text style={styles.videoUploadDate} numberOfLines={1}>
-                        {new Date().toLocaleDateString()}
-                    </Text>
+                    <View style={styles.uploadDateContainer}>
+                        <Text style={styles.videoUploadDate} numberOfLines={1}>
+                            {new Date().toLocaleDateString()}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </TouchableWithoutFeedback>
@@ -284,6 +289,17 @@ const styles = StyleSheet.create({
         color: colors.primary,
         textAlign: "right",
         letterSpacing: wp(0.5),
+    },
+    channelName: {
+        fontFamily: fonts.poppinsBold,
+        fontSize: fp(12),
+        fontWeight: "700",
+        color: colors.primary,
+        letterSpacing: wp(0.5),
+        marginBottom: spacing.xs,
+    },
+    uploadDateContainer: {
+        alignItems: "flex-end",
     },
     loadingContainer: {
         alignItems: "center",
