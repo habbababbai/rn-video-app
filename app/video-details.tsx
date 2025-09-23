@@ -71,11 +71,8 @@ export default function VideoDetailsScreen() {
     const screenWidth = Dimensions.get("window").width;
     const progressBarWidth = screenWidth; // Full screen width
 
-    // Use placeholder video for testing, or you can implement logic to get actual video URL
-    const videoSource =
-        videoId === "placeholder-local-tab"
-            ? require("@/assets/videos/broadchurch.mp4")
-            : null;
+    // Use placeholder video for testing - always show placeholder for now
+    const videoSource = require("@/assets/videos/broadchurch.mp4");
 
     // Handle play/pause/replay functionality
     const handlePlayPause = () => {
