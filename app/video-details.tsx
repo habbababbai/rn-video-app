@@ -559,13 +559,11 @@ export default function VideoDetailsScreen() {
                     <StatusBar style="light" />
 
                     {videoSource ? (
-                        <TouchableOpacity
+                        <View
                             style={[
                                 styles.videoContainer,
                                 isFullscreen && styles.fullscreenVideoContainer,
                             ]}
-                            onPress={showControlsAndStartTimer}
-                            activeOpacity={1}
                         >
                             <Video
                                 ref={videoRef}
@@ -582,6 +580,11 @@ export default function VideoDetailsScreen() {
                                 onProgress={handleVideoProgress}
                             />
 
+                            <TouchableWithoutFeedback
+                                onPress={showControlsAndStartTimer}
+                            >
+                                <View style={styles.videoTouchOverlay} />
+                            </TouchableWithoutFeedback>
                             <PlayButton />
                             <ProgressBar />
                             <TimerDisplay />
@@ -589,7 +592,7 @@ export default function VideoDetailsScreen() {
                             <AirplayButton />
                             <MuteButton />
                             <FullscreenButton />
-                        </TouchableOpacity>
+                        </View>
                     ) : (
                         <View style={styles.placeholderContainer}>
                             <Text style={styles.placeholderText}>
@@ -781,6 +784,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "rgba(0, 0, 0, 0.1)",
+        zIndex: 10,
     },
     controlsRow: {
         flexDirection: "row",
@@ -828,6 +832,7 @@ const styles = StyleSheet.create({
         height: hp(4),
         justifyContent: "center",
         overflow: "visible",
+        zIndex: 10,
     },
     progressBarBackground: {
         height: hp(4),
@@ -886,6 +891,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(8),
         paddingVertical: hp(4),
         borderRadius: wp(4),
+        zIndex: 10,
     },
     timerText: {
         color: colors.white,
@@ -898,6 +904,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: hp(12),
         left: wp(12),
+        zIndex: 10,
     },
     backButton: {
         width: wp(40),
@@ -919,6 +926,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: hp(6),
         right: wp(6),
+        zIndex: 10,
     },
     fullscreenButton: {
         width: wp(48),
@@ -940,6 +948,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: hp(12),
         right: wp(60),
+        zIndex: 10,
     },
     muteButton: {
         width: wp(40),
@@ -961,6 +970,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: hp(12),
         right: wp(12),
+        zIndex: 10,
     },
     airplayButton: {
         width: wp(40),
@@ -1033,5 +1043,14 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: colors.gray.placeholder,
         lineHeight: hp(20),
+    },
+    videoTouchOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "transparent",
+        zIndex: 1,
     },
 });
