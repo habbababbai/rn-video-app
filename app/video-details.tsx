@@ -1,9 +1,7 @@
 import PersonIcon from "@/assets/images/svg/person.svg";
-import { BackButton } from "@/components/BackButton";
 import { CastButton } from "@/components/CastButton";
+import { ControlButton } from "@/components/ControlButton";
 import { DetailsTab } from "@/components/DetailsTab";
-import { FullscreenButton } from "@/components/FullscreenButton";
-import { MuteButton } from "@/components/MuteButton";
 import { NotesTab } from "@/components/NotesTab";
 import { PlayButton } from "@/components/PlayButton";
 import { ProgressBar } from "@/components/ProgressBar";
@@ -291,10 +289,11 @@ export default function VideoDetailsScreen() {
                                 showControls={showControls}
                                 controlsAnimatedStyle={controlsAnimatedStyle}
                             />
-                            <BackButton
+                            <ControlButton
+                                type="back"
                                 showControls={showControls}
                                 controlsAnimatedStyle={controlsAnimatedStyle}
-                                onBack={async () => {
+                                onPress={async () => {
                                     if (isFullscreen) {
                                         await ScreenOrientation.unlockAsync();
                                         await new Promise((resolve) =>
@@ -309,19 +308,21 @@ export default function VideoDetailsScreen() {
                                 controlsAnimatedStyle={controlsAnimatedStyle}
                                 onShowControls={showControlsAndStartTimer}
                             />
-                            <MuteButton
+                            <ControlButton
+                                type="mute"
                                 isMuted={isMuted}
                                 showControls={showControls}
                                 controlsAnimatedStyle={controlsAnimatedStyle}
-                                onMute={() => {
+                                onPress={() => {
                                     setIsMuted(!isMuted);
                                     showControlsAndStartTimer();
                                 }}
                             />
-                            <FullscreenButton
+                            <ControlButton
+                                type="fullscreen"
                                 showControls={showControls}
                                 controlsAnimatedStyle={controlsAnimatedStyle}
-                                onFullscreen={async () => {
+                                onPress={async () => {
                                     const newFullscreenState = !isFullscreen;
                                     setIsFullscreen(newFullscreenState);
 

@@ -70,7 +70,7 @@ export const CastButton: React.FC<CastButtonProps> = ({
 const styles = StyleSheet.create({
     airplayButtonContainer: {
         position: "absolute",
-        top: spacing.md,
+        top: hp(12),
         right: wp(12),
         zIndex: 10,
     },
