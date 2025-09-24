@@ -22,6 +22,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     Keyboard,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -63,28 +64,29 @@ export default function VideoDetailsScreen() {
     const keyboardHeight = useSharedValue(0);
     const lastProgressUpdateRef = useRef(0);
 
-    useEffect(() => {
-        const keyboardWillShow = Keyboard.addListener(
-            "keyboardWillShow",
-            (event) => {
-                keyboardHeight.value = withTiming(event.endCoordinates.height, {
-                    duration: event.duration || 250,
-                });
-            }
-        );
+    const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
 
-        const keyboardWillHide = Keyboard.addListener(
-            "keyboardWillHide",
-            (event) => {
-                keyboardHeight.value = withTiming(0, {
-                    duration: event.duration || 250,
-                });
-            }
-        );
+    useEffect(() => {
+        const showEvent =
+            Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+        const hideEvent =
+            Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+        const keyboardShow = Keyboard.addListener(showEvent, (event) => {
+            keyboardHeight.value = withTiming(event.endCoordinates.height, {
+                duration: Platform.OS === "ios" ? event.duration || 250 : 250,
+            });
+        });
+
+        const keyboardHide = Keyboard.addListener(hideEvent, (event) => {
+            keyboardHeight.value = withTiming(0, {
+                duration: Platform.OS === "ios" ? event.duration || 250 : 250,
+            });
+        });
 
         return () => {
-            keyboardWillShow.remove();
-            keyboardWillHide.remove();
+            keyboardShow.remove();
+            keyboardHide.remove();
         };
     }, [keyboardHeight]);
 
@@ -240,10 +242,11 @@ export default function VideoDetailsScreen() {
         };
     }, []);
 
-    const screenWidth = Dimensions.get("window").width;
-    const progressBarWidth = screenWidth; // Full screen width
-
-    const videoSource = require("@/assets/videos/broadchurch.mp4");
+    const getProgressBarWidth = () => {
+        const { width, height } = Dimensions.get("window");
+        // In fullscreen (landscape), use the larger dimension
+        return isFullscreen ? Math.max(width, height) : width;
+    };
 
     const shouldShowRealData =
         videoId !== "placeholder-local-tab" && !error && videoDetails;
@@ -259,11 +262,7 @@ export default function VideoDetailsScreen() {
         showControlsAndStartTimer();
     };
 
-    const handleVideoLoad = (data: any) => {
-        console.log("Video Loaded:", data);
-        setIsFinished(false);
-        setDuration(data.duration);
-    };
+    // handleVideoLoad is now handled inline in the Video component
 
     const handleVideoEnd = () => {
         setIsPlaying(false);
@@ -315,7 +314,7 @@ export default function VideoDetailsScreen() {
     };
 
     const getThumbPosition = () => {
-        return getProgress() * progressBarWidth;
+        return getProgress() * getProgressBarWidth();
     };
 
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
@@ -535,7 +534,10 @@ export default function VideoDetailsScreen() {
 
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
-        const progress = Math.max(0, Math.min(locationX / progressBarWidth, 1));
+        const progress = Math.max(
+            0,
+            Math.min(locationX / getProgressBarWidth(), 1)
+        );
         const newTime = progress * duration;
         seekTo(newTime);
         showControlsAndStartTimer();
@@ -559,13 +561,11 @@ export default function VideoDetailsScreen() {
                     <StatusBar style="light" />
 
                     {videoSource ? (
-                        <TouchableOpacity
+                        <View
                             style={[
                                 styles.videoContainer,
                                 isFullscreen && styles.fullscreenVideoContainer,
                             ]}
-                            onPress={showControlsAndStartTimer}
-                            activeOpacity={1}
                         >
                             <Video
                                 ref={videoRef}
@@ -576,12 +576,27 @@ export default function VideoDetailsScreen() {
                                 paused={!isPlaying}
                                 muted={isMuted}
                                 progressUpdateInterval={500}
+                                {...(Platform.OS === "android"
+                                    ? {
+                                          useTextureView: false,
+                                      }
+                                    : {})}
                                 onError={handleVideoError}
-                                onLoad={handleVideoLoad}
+                                onLoad={(data) => {
+                                    console.log("Video Loaded:", data);
+                                    setIsFinished(false);
+                                    setDuration(data.duration);
+                                    setCurrentTime(0);
+                                }}
                                 onEnd={handleVideoEnd}
                                 onProgress={handleVideoProgress}
                             />
 
+                            <TouchableWithoutFeedback
+                                onPress={showControlsAndStartTimer}
+                            >
+                                <View style={styles.videoTouchOverlay} />
+                            </TouchableWithoutFeedback>
                             <PlayButton />
                             <ProgressBar />
                             <TimerDisplay />
@@ -589,7 +604,7 @@ export default function VideoDetailsScreen() {
                             <AirplayButton />
                             <MuteButton />
                             <FullscreenButton />
-                        </TouchableOpacity>
+                        </View>
                     ) : (
                         <View style={styles.placeholderContainer}>
                             <Text style={styles.placeholderText}>
@@ -781,6 +796,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "rgba(0, 0, 0, 0.1)",
+        zIndex: 10,
     },
     controlsRow: {
         flexDirection: "row",
@@ -828,6 +844,7 @@ const styles = StyleSheet.create({
         height: hp(4),
         justifyContent: "center",
         overflow: "visible",
+        zIndex: 10,
     },
     progressBarBackground: {
         height: hp(4),
@@ -886,6 +903,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(8),
         paddingVertical: hp(4),
         borderRadius: wp(4),
+        zIndex: 10,
     },
     timerText: {
         color: colors.white,
@@ -898,6 +916,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: hp(12),
         left: wp(12),
+        zIndex: 10,
     },
     backButton: {
         width: wp(40),
@@ -919,6 +938,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: hp(6),
         right: wp(6),
+        zIndex: 10,
     },
     fullscreenButton: {
         width: wp(48),
@@ -940,6 +960,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: hp(12),
         right: wp(60),
+        zIndex: 10,
     },
     muteButton: {
         width: wp(40),
@@ -961,6 +982,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: hp(12),
         right: wp(12),
+        zIndex: 10,
     },
     airplayButton: {
         width: wp(40),
@@ -1033,5 +1055,14 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: colors.gray.placeholder,
         lineHeight: hp(20),
+    },
+    videoTouchOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "transparent",
+        zIndex: 1,
     },
 });

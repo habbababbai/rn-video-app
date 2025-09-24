@@ -35,6 +35,7 @@ export default function SettingsScreen() {
 
     const [reminderEnabled, setReminderEnabled] = useState(false);
     const [time, setTime] = useState<Date>(new Date());
+    const [showAndroidPicker, setShowAndroidPicker] = useState(false);
 
     useEffect(() => {
         setReminderEnabled(reminderState.enabled);
@@ -126,6 +127,7 @@ export default function SettingsScreen() {
     const onChangeTime = async (_: any, selectedDate?: Date) => {
         const currentDate = selectedDate ?? time;
         setTime(currentDate);
+        setShowAndroidPicker(false); // Close Android picker
         dispatch(
             setReminderTime({
                 hour: currentDate.getHours(),
@@ -189,19 +191,38 @@ export default function SettingsScreen() {
                     <View style={styles.timePickerContainer}>
                         <ClockIcon width={fp(24)} height={fp(24)} />
 
-                        <DateTimePicker
-                            value={time}
-                            mode="time"
-                            display="default"
-                            onChange={onChangeTime}
-                            style={styles.datePicker}
-                            {...(Platform.OS === "ios"
-                                ? {
-                                      themeVariant: "light",
-                                      textColor: colors.primary,
-                                  }
-                                : {})}
-                        />
+                        {Platform.OS === "ios" ? (
+                            <DateTimePicker
+                                value={time}
+                                mode="time"
+                                display="default"
+                                onChange={onChangeTime}
+                                style={styles.datePicker}
+                                themeVariant="light"
+                                textColor={colors.primary}
+                            />
+                        ) : (
+                            <Pressable
+                                onPress={() => setShowAndroidPicker(true)}
+                                style={styles.timeButton}
+                            >
+                                <Text style={styles.timeButtonText}>
+                                    {time.toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </Text>
+                            </Pressable>
+                        )}
+
+                        {showAndroidPicker && Platform.OS === "android" && (
+                            <DateTimePicker
+                                value={time}
+                                mode="time"
+                                display="default"
+                                onChange={onChangeTime}
+                            />
+                        )}
                     </View>
 
                     <ToggleSwitch
@@ -308,16 +329,13 @@ const styles = StyleSheet.create({
     },
     timeButton: {
         paddingVertical: hp(8),
-        paddingHorizontal: wp(12),
-        borderRadius: fp(4),
-        borderWidth: 1,
-        borderColor: colors.primary,
+        paddingHorizontal: wp(6),
     },
     timeButtonText: {
         fontFamily: fonts.poppins,
         fontSize: fp(12),
         color: colors.primary,
-        letterSpacing: wp(0.5),
+        letterSpacing: wp(0.4),
     },
     timePickerContainer: {
         flexDirection: "row",
