@@ -12,20 +12,14 @@ import {
     setNotificationId as setReminderNotificationId,
     setTime as setReminderTime,
 } from "@/store/slices/reminderSlice";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-    Alert,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
     Easing,
     useAnimatedStyle,
@@ -54,7 +48,7 @@ export default function SettingsScreen() {
     }, [reminderState.enabled, reminderState.hour, reminderState.minute]);
 
     useEffect(() => {
-        if (Platform.OS === "android") {
+        if (!isIOS) {
             Notifications.setNotificationChannelAsync("default", {
                 name: "Default",
                 importance: Notifications.AndroidImportance.DEFAULT,
@@ -71,7 +65,7 @@ export default function SettingsScreen() {
             repeats: true,
             hour,
             minute,
-            ...(Platform.OS === "android" ? { channelId: "default" } : {}),
+            ...(!isIOS ? { channelId: "default" } : {}),
         } as unknown as Notifications.NotificationTriggerInput;
 
         const id = await Notifications.scheduleNotificationAsync({
@@ -244,7 +238,7 @@ export default function SettingsScreen() {
                     <View style={styles.timePickerContainer}>
                         <ClockIcon width={fp(24)} height={fp(24)} />
 
-                        {Platform.OS === "ios" ? (
+                        {isIOS ? (
                             <DateTimePicker
                                 value={time}
                                 mode="time"
@@ -268,7 +262,7 @@ export default function SettingsScreen() {
                             </Pressable>
                         )}
 
-                        {showAndroidPicker && Platform.OS === "android" && (
+                        {showAndroidPicker && !isIOS && (
                             <DateTimePicker
                                 value={time}
                                 mode="time"

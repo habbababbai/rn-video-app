@@ -1,6 +1,7 @@
 import AirplayIcon from "@/assets/images/svg/airplay.svg";
 import { colors } from "@/constants/colors";
 import { hp, spacing, wp } from "@/utils/responsive";
+import { isIOS } from "@/utils/platform";
 import React from "react";
 import {
     Alert,
@@ -24,7 +25,7 @@ export const CastButton: React.FC<CastButtonProps> = ({
     onShowControls,
 }) => {
     const handleCast = () => {
-        if (Platform.OS === "ios") {
+        if (isIOS) {
             // For iOS, show AirPlay instructions since Google Cast might not work properly
             Alert.alert(
                 "AirPlay",
@@ -40,7 +41,7 @@ export const CastButton: React.FC<CastButtonProps> = ({
             style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
             pointerEvents={showControls ? "auto" : "none"}
         >
-            {Platform.OS === "ios" ? (
+            {isIOS ? (
                 <TouchableOpacity
                     style={styles.airplayButton}
                     onPress={handleCast}

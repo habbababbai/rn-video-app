@@ -4,6 +4,7 @@ import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearchInfinite } from "@/hooks/useYouTubeApi";
 import { CustomSortOrder, YouTubeVideo } from "@/services/youtubeApi";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, {
@@ -18,7 +19,6 @@ import {
     FlatList,
     Image,
     Keyboard,
-    Platform,
     RefreshControl,
     StyleSheet,
     Text,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
         textAlignVertical: "center",
         includeFontPadding: false,
         textAlign: "left",
-        ...(Platform.OS === "android" && {
+        ...(!isIOS && {
             paddingTop: hp(2),
             paddingBottom: hp(2),
         }),

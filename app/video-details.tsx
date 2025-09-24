@@ -9,6 +9,7 @@ import { TimerDisplay } from "@/components/TimerDisplay";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -17,7 +18,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     Keyboard,
-    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -77,20 +77,18 @@ export default function VideoDetailsScreen() {
     }));
 
     useEffect(() => {
-        const showEvent =
-            Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-        const hideEvent =
-            Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+        const showEvent = isIOS ? "keyboardWillShow" : "keyboardDidShow";
+        const hideEvent = isIOS ? "keyboardWillHide" : "keyboardDidHide";
 
         const keyboardShow = Keyboard.addListener(showEvent, (event) => {
             keyboardHeight.value = withTiming(event.endCoordinates.height, {
-                duration: Platform.OS === "ios" ? event.duration || 250 : 250,
+                duration: isIOS ? event.duration || 250 : 250,
             });
         });
 
         const keyboardHide = Keyboard.addListener(hideEvent, (event) => {
             keyboardHeight.value = withTiming(0, {
-                duration: Platform.OS === "ios" ? event.duration || 250 : 250,
+                duration: isIOS ? event.duration || 250 : 250,
             });
         });
 
@@ -247,7 +245,7 @@ export default function VideoDetailsScreen() {
                                 muted={isMuted}
                                 progressUpdateInterval={500}
                                 allowsExternalPlayback={true}
-                                {...(Platform.OS === "android"
+                                {...(!isIOS
                                     ? {
                                           useTextureView: false,
                                       }
@@ -336,7 +334,7 @@ export default function VideoDetailsScreen() {
                                                 .LANDSCAPE
                                         );
                                     } else {
-                                        if (Platform.OS === "ios") {
+                                        if (isIOS) {
                                             // iOS-specific approach: unlock first, then force portrait
                                             await ScreenOrientation.unlockAsync();
                                             await new Promise((resolve) =>
