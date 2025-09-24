@@ -24,7 +24,12 @@
             },
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
-            "package": "com.anonymous.youtubelearn"
+            "package": "com.anonymous.youtubelearn",
+            "permissions": [
+                "android.permission.RECEIVE_BOOT_COMPLETED",
+                "android.permission.VIBRATE",
+                "android.permission.WAKE_LOCK"
+            ]
         },
         "web": {
             "output": "static",
@@ -33,6 +38,14 @@
         "plugins": [
             "expo-router",
             "expo-dev-client",
+            [
+                "expo-notifications",
+                {
+                    "icon": "./assets/images/logo/app-icon.png",
+                    "color": "#8D99AE",
+                    "defaultChannel": "default"
+                }
+            ],
             [
                 "expo-splash-screen",
                 {

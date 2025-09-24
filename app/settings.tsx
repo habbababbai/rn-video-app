@@ -51,8 +51,12 @@ export default function SettingsScreen() {
         if (!isIOS) {
             Notifications.setNotificationChannelAsync("default", {
                 name: "Default",
-                importance: Notifications.AndroidImportance.DEFAULT,
-            }).catch(() => {});
+                importance: Notifications.AndroidImportance.HIGH,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: "#8D99AE",
+            }).catch((error) => {
+                console.log("Error setting notification channel:", error);
+            });
         }
     }, []);
 
@@ -60,19 +64,31 @@ export default function SettingsScreen() {
         hour: number,
         minute: number
     ): Promise<string> => {
-        const trigger = {
-            type: "calendar" as const,
-            repeats: true,
-            hour,
-            minute,
-            ...(!isIOS ? { channelId: "default" } : {}),
-        } as unknown as Notifications.NotificationTriggerInput;
+        const trigger = isIOS
+            ? ({
+                  type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+                  repeats: true,
+                  hour,
+                  minute,
+              } as Notifications.CalendarTriggerInput)
+            : ({
+                  type: Notifications.SchedulableTriggerInputTypes.DAILY,
+                  hour,
+                  minute,
+              } as Notifications.DailyTriggerInput);
 
         const id = await Notifications.scheduleNotificationAsync({
             content: {
                 title: "YoutubeLearn",
                 body: "Reminder for daily study!",
                 sound: true,
+                ...(isIOS
+                    ? {}
+                    : {
+                          channelId: "default",
+                          priority:
+                              Notifications.AndroidNotificationPriority.HIGH,
+                      }),
             },
             trigger,
         });
@@ -91,6 +107,7 @@ export default function SettingsScreen() {
 
     const requestPermissionIfNeeded = async (): Promise<boolean> => {
         let perms = await Notifications.getPermissionsAsync();
+
         if (!perms.granted) {
             perms = await Notifications.requestPermissionsAsync();
         }
@@ -435,5 +452,19 @@ const styles = StyleSheet.create({
         fontSize: fp(10),
         color: colors.primary,
         letterSpacing: wp(0.25),
+    },
+    testButton: {
+        marginTop: hp(20),
+        backgroundColor: colors.primary,
+        paddingVertical: hp(12),
+        paddingHorizontal: wp(20),
+        borderRadius: fp(8),
+        alignSelf: "center",
+    },
+    testButtonText: {
+        color: colors.white,
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(12),
+        fontWeight: "600",
     },
 });
