@@ -1,4 +1,3 @@
-// Custom SVG icons imported
 import AirplayIcon from "@/assets/images/svg/airplay.svg";
 import BackwardIcon from "@/assets/images/svg/backward.svg";
 import ForwardIcon from "@/assets/images/svg/forward.svg";
@@ -153,8 +152,8 @@ export default function VideoDetailsScreen() {
 
         const formatNumber = (num: string) => {
             const number = parseInt(num);
-            if (number >= 1000000) {
-                return `${(number / 1000000).toFixed(1)}M`;
+            if (number >= 9999999) {
+                return `${(number / 9999999).toFixed(1)}M`;
             } else if (number >= 1000) {
                 return `${(number / 1000).toFixed(1)}K`;
             }
@@ -261,8 +260,6 @@ export default function VideoDetailsScreen() {
         }
         showControlsAndStartTimer();
     };
-
-    // handleVideoLoad is now handled inline in the Video component
 
     const handleVideoEnd = () => {
         setIsPlaying(false);
