@@ -22,6 +22,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     Keyboard,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -262,11 +263,7 @@ export default function VideoDetailsScreen() {
         showControlsAndStartTimer();
     };
 
-    const handleVideoLoad = (data: any) => {
-        console.log("Video Loaded:", data);
-        setIsFinished(false);
-        setDuration(data.duration);
-    };
+    // handleVideoLoad is now handled inline in the Video component
 
     const handleVideoEnd = () => {
         setIsPlaying(false);
@@ -580,8 +577,18 @@ export default function VideoDetailsScreen() {
                                 paused={!isPlaying}
                                 muted={isMuted}
                                 progressUpdateInterval={500}
+                                {...(Platform.OS === "android"
+                                    ? {
+                                          useTextureView: false,
+                                      }
+                                    : {})}
                                 onError={handleVideoError}
-                                onLoad={handleVideoLoad}
+                                onLoad={(data) => {
+                                    console.log("Video Loaded:", data);
+                                    setIsFinished(false);
+                                    setDuration(data.duration);
+                                    setCurrentTime(0);
+                                }}
                                 onEnd={handleVideoEnd}
                                 onProgress={handleVideoProgress}
                             />

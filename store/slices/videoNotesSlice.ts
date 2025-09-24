@@ -1,11 +1,11 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface VideoNote {
     id: string;
     text: string;
-    timestamp: number; 
+    timestamp: number;
     videoId: string;
-    videoTime: number; 
+    videoTime: number;
 }
 
 export interface VideoNotesState {
@@ -94,10 +94,14 @@ const videoNotesSlice = createSlice({
 export const { addNote, deleteNote, editNote, clearAllNotesForVideo } =
     videoNotesSlice.actions;
 
-export const selectNotesForVideo = (
-    state: { videoNotes: VideoNotesState },
-    videoId: string
-) => state.videoNotes.notesByVideo[videoId] || [];
+export const selectNotesForVideo = createSelector(
+    [
+        (state: { videoNotes: VideoNotesState }) =>
+            state.videoNotes.notesByVideo,
+        (_: any, videoId: string) => videoId,
+    ],
+    (notesByVideo, videoId) => notesByVideo[videoId] || []
+);
 
 export const selectAllVideoNotes = (state: { videoNotes: VideoNotesState }) =>
     state.videoNotes.notesByVideo;
