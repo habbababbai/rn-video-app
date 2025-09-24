@@ -1,4 +1,5 @@
 import { colors } from "@/constants/colors";
+import { fp, hp, wp } from "@/utils/responsive";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, Pressable, StyleSheet } from "react-native";
 
@@ -8,12 +9,12 @@ type ToggleSwitchProps = {
     disabled?: boolean;
 };
 
-const TRACK_WIDTH = 66;
-const TRACK_HEIGHT = 36;
-const TRACK_RADIUS = TRACK_HEIGHT / 2; // 18
+const TRACK_WIDTH = wp(66);
+const TRACK_HEIGHT = hp(36);
+const TRACK_RADIUS = TRACK_HEIGHT / 2;
 const PADDING = 2;
-const THUMB_SIZE = 28; // 28x28 dot per spec
-const TRAVEL_DISTANCE = TRACK_WIDTH - THUMB_SIZE - PADDING * 2; // 34
+const THUMB_SIZE = fp(28);
+const TRAVEL_DISTANCE = TRACK_WIDTH - THUMB_SIZE - PADDING * 2;
 
 export default function ToggleSwitch({
     value,

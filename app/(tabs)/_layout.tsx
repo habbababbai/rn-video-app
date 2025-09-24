@@ -4,9 +4,10 @@ import SearchPressedIcon from "@/assets/images/svg/search-icon-pressed.svg";
 import SearchIcon from "@/assets/images/svg/search-icon.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, wp } from "@/utils/responsive";
 import { Tabs } from "expo-router";
-import { Platform, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TabLayout() {
@@ -24,9 +25,8 @@ export default function TabLayout() {
                     tabBarInactiveTintColor: colors.primary,
                     tabBarStyle: {
                         backgroundColor: colors.secondary,
-                        paddingBottom:
-                            Platform.OS === "android" ? hp(8) : hp(2),
-                        paddingTop: Platform.OS === "android" ? hp(8) : hp(12),
+                        paddingBottom: !isIOS ? hp(8) : hp(2),
+                        paddingTop: !isIOS ? hp(8) : hp(12),
                         height: hp(72),
                     },
                     tabBarLabelStyle: styles.tabBarLabelStyle,

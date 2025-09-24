@@ -1,19 +1,15 @@
-// Custom SVG icons imported
-import AirplayIcon from "@/assets/images/svg/airplay.svg";
-import BackwardIcon from "@/assets/images/svg/backward.svg";
-import ForwardIcon from "@/assets/images/svg/forward.svg";
-import FullscreenIcon from "@/assets/images/svg/fullscreen.svg";
-import LeftArrowIcon from "@/assets/images/svg/left-arrow.svg";
-import LikesIcon from "@/assets/images/svg/likes.svg";
-import MuteIcon from "@/assets/images/svg/mute.svg";
-import PauseIcon from "@/assets/images/svg/pause.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
-import PlayIcon from "@/assets/images/svg/play.svg";
-import ViewsIcon from "@/assets/images/svg/views.svg";
-import VideoNotes from "@/components/VideoNotes";
+import { CastButton } from "@/components/CastButton";
+import { ControlButton } from "@/components/ControlButton";
+import { DetailsTab } from "@/components/DetailsTab";
+import { NotesTab } from "@/components/NotesTab";
+import { PlayButton } from "@/components/PlayButton";
+import { ProgressBar } from "@/components/ProgressBar";
+import { TimerDisplay } from "@/components/TimerDisplay";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -22,17 +18,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     Keyboard,
-    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
 } from "react-native";
-import {
-    GestureHandlerRootView,
-    ScrollView,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -50,8 +42,13 @@ export default function VideoDetailsScreen() {
         isLoading,
         error,
     } = useYouTubeVideoDetails(videoId || "");
+
     const videoRef = useRef<VideoRef>(null);
     const insets = useSafeAreaInsets();
+    const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
+    const lastProgressUpdateRef = useRef(0);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
@@ -61,26 +58,37 @@ export default function VideoDetailsScreen() {
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
+
     const keyboardHeight = useSharedValue(0);
-    const lastProgressUpdateRef = useRef(0);
+    const controlsOpacity = useSharedValue(1);
 
     const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
+    const shouldShowRealData =
+        videoId !== "placeholder-local-tab" && !error && !!videoDetails;
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: -keyboardHeight.value }],
+        };
+    });
+
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
 
     useEffect(() => {
-        const showEvent =
-            Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-        const hideEvent =
-            Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+        const showEvent = isIOS ? "keyboardWillShow" : "keyboardDidShow";
+        const hideEvent = isIOS ? "keyboardWillHide" : "keyboardDidHide";
 
         const keyboardShow = Keyboard.addListener(showEvent, (event) => {
             keyboardHeight.value = withTiming(event.endCoordinates.height, {
-                duration: Platform.OS === "ios" ? event.duration || 250 : 250,
+                duration: isIOS ? event.duration || 250 : 250,
             });
         });
 
         const keyboardHide = Keyboard.addListener(hideEvent, (event) => {
             keyboardHeight.value = withTiming(0, {
-                duration: Platform.OS === "ios" ? event.duration || 250 : 250,
+                duration: isIOS ? event.duration || 250 : 250,
             });
         });
 
@@ -90,130 +98,18 @@ export default function VideoDetailsScreen() {
         };
     }, [keyboardHeight]);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ translateY: -keyboardHeight.value }],
+    useEffect(() => {
+        return () => {
+            if (hideControlsTimeoutRef.current) {
+                clearTimeout(hideControlsTimeoutRef.current);
+            }
+            ScreenOrientation.unlockAsync();
         };
-    });
+    }, []);
 
     const dismissKeyboard = useCallback(() => {
         Keyboard.dismiss();
     }, []);
-
-    const DetailsTab = () => {
-        if (isLoading) {
-            return (
-                <View style={styles.descriptionContainer}>
-                    <Text style={styles.descriptionText}>
-                        Loading video details...
-                    </Text>
-                </View>
-            );
-        }
-
-        if (error || !videoDetails) {
-            return (
-                <View style={styles.descriptionContainer}>
-                    <Text style={styles.descriptionTitle}>Description</Text>
-                    <Text style={styles.descriptionText} selectable={true}>
-                        {videoId === "placeholder-local-tab"
-                            ? "This is a placeholder video for testing purposes. Broadchurch is a British crime drama television series created and written by Chris Chibnall."
-                            : "Failed to load video details. Please try again."}
-                    </Text>
-                    <Text style={styles.descriptionTitle}>Statistics</Text>
-                    <View style={styles.statisticsContainer}>
-                        <View style={styles.statisticsItem}>
-                            <ViewsIcon
-                                width={wp(20)}
-                                height={hp(20)}
-                                stroke="white"
-                            />
-                            <Text style={styles.statisticsText}>
-                                {videoId === "placeholder-local-tab"
-                                    ? "1.2M views"
-                                    : "0 views"}
-                            </Text>
-                        </View>
-                        <View style={styles.statisticsItem}>
-                            <LikesIcon
-                                width={wp(20)}
-                                height={hp(20)}
-                                stroke="white"
-                            />
-                            <Text style={styles.statisticsText}>
-                                {videoId === "placeholder-local-tab"
-                                    ? "45K likes"
-                                    : "0 likes"}
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-            );
-        }
-
-        const formatNumber = (num: string) => {
-            const number = parseInt(num);
-            if (number >= 1000000) {
-                return `${(number / 1000000).toFixed(1)}M`;
-            } else if (number >= 1000) {
-                return `${(number / 1000).toFixed(1)}K`;
-            }
-            return number.toString();
-        };
-
-        return (
-            <ScrollView style={styles.descriptionContainer}>
-                <Text style={styles.descriptionTitle}>Description</Text>
-                <Text style={styles.descriptionText} selectable={true}>
-                    {videoDetails.snippet.description ||
-                        "No description available."}
-                </Text>
-                <Text style={styles.descriptionTitle}>Statistics</Text>
-                <View style={styles.statisticsContainer}>
-                    <View style={styles.statisticsItem}>
-                        <ViewsIcon
-                            width={wp(20)}
-                            height={hp(20)}
-                            stroke="white"
-                        />
-                        <Text style={styles.statisticsText}>
-                            {formatNumber(videoDetails.statistics.viewCount)}{" "}
-                            views
-                        </Text>
-                    </View>
-                    <View style={styles.statisticsItem}>
-                        <LikesIcon
-                            width={wp(20)}
-                            height={hp(20)}
-                            stroke="white"
-                        />
-                        <Text style={styles.statisticsText}>
-                            {formatNumber(videoDetails.statistics.likeCount)}{" "}
-                            likes
-                        </Text>
-                    </View>
-                </View>
-            </ScrollView>
-        );
-    };
-
-    const NotesTab = () => (
-        <VideoNotes
-            videoId={videoId}
-            currentVideoTime={currentTime}
-            onBeginInputFocus={() => {
-                if (isPlaying) {
-                    setIsPlaying(false);
-                }
-                showControlsAndStartTimer();
-            }}
-        />
-    );
-
-    const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-        null
-    );
-    const controlsOpacity = useSharedValue(1);
 
     const startHideTimer = useCallback(() => {
         if (hideControlsTimeoutRef.current) {
@@ -233,23 +129,31 @@ export default function VideoDetailsScreen() {
         startHideTimer();
     }, [controlsOpacity, startHideTimer]);
 
-    useEffect(() => {
-        return () => {
-            if (hideControlsTimeoutRef.current) {
-                clearTimeout(hideControlsTimeoutRef.current);
-            }
-            ScreenOrientation.unlockAsync();
-        };
-    }, []);
-
     const getProgressBarWidth = () => {
         const { width, height } = Dimensions.get("window");
         // In fullscreen (landscape), use the larger dimension
         return isFullscreen ? Math.max(width, height) : width;
     };
 
-    const shouldShowRealData =
-        videoId !== "placeholder-local-tab" && !error && videoDetails;
+    const getProgress = () => {
+        return duration > 0 ? currentTime / duration : 0;
+    };
+
+    const getThumbPosition = () => {
+        return getProgress() * getProgressBarWidth();
+    };
+
+    const seekTo = (time: number) => {
+        videoRef.current?.seek(time);
+        setCurrentTime(time);
+    };
+
+    const handleBeginInputFocus = () => {
+        if (isPlaying) {
+            setIsPlaying(false);
+        }
+        showControlsAndStartTimer();
+    };
 
     const handlePlayPause = () => {
         if (isFinished) {
@@ -261,8 +165,6 @@ export default function VideoDetailsScreen() {
         }
         showControlsAndStartTimer();
     };
-
-    // handleVideoLoad is now handled inline in the Video component
 
     const handleVideoEnd = () => {
         setIsPlaying(false);
@@ -286,17 +188,6 @@ export default function VideoDetailsScreen() {
         }
     };
 
-    useEffect(() => {
-        if (isPlaying && showControls) {
-            startHideTimer();
-        }
-    }, [isPlaying, showControls, startHideTimer]);
-
-    const seekTo = (time: number) => {
-        videoRef.current?.seek(time);
-        setCurrentTime(time);
-    };
-
     const seekBackward = () => {
         const newTime = Math.max(0, currentTime - 5);
         seekTo(newTime);
@@ -308,229 +199,6 @@ export default function VideoDetailsScreen() {
         seekTo(newTime);
         showControlsAndStartTimer();
     };
-
-    const getProgress = () => {
-        return duration > 0 ? currentTime / duration : 0;
-    };
-
-    const getThumbPosition = () => {
-        return getProgress() * getProgressBarWidth();
-    };
-
-    const controlsAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: controlsOpacity.value,
-    }));
-
-    const PlayButton = () => (
-        <Animated.View
-            style={[styles.controlsOverlay, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <View style={styles.controlsRow}>
-                <TouchableOpacity
-                    style={styles.seekButton}
-                    onPress={seekBackward}
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <BackwardIcon
-                        width={wp(20)}
-                        height={hp(20)}
-                        stroke="white"
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={handlePlayPause}
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    {isFinished ? (
-                        <PlayIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            stroke="white"
-                        />
-                    ) : isPlaying ? (
-                        <PauseIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            stroke="white"
-                        />
-                    ) : (
-                        <PlayIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            stroke="white"
-                        />
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.seekButton}
-                    onPress={seekForward}
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <ForwardIcon
-                        width={wp(20)}
-                        height={hp(20)}
-                        stroke="white"
-                    />
-                </TouchableOpacity>
-            </View>
-        </Animated.View>
-    );
-
-    const ProgressBar = () => (
-        <Animated.View
-            style={[styles.progressBarContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.progressBarBackground}
-                onPress={handleProgressBarPress}
-                activeOpacity={0.8}
-                hitSlop={{ top: hp(20), bottom: hp(20), left: 0, right: 0 }}
-            >
-                <View
-                    style={[
-                        styles.progressBarFill,
-                        { width: getThumbPosition() },
-                    ]}
-                />
-                <View
-                    style={[
-                        styles.progressBarThumb,
-                        { left: getThumbPosition() - wp(6) },
-                    ]}
-                />
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
-
-    const TimerDisplay = () => (
-        <Animated.View
-            style={[styles.timerContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <Text style={styles.timerText}>
-                {formatTime(currentTime)} / {formatTime(duration)}
-            </Text>
-        </Animated.View>
-    );
-
-    const BackButton = () => (
-        <Animated.View
-            style={[styles.backButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={async () => {
-                    // Restore orientation first, then navigate back
-                    if (isFullscreen) {
-                        await ScreenOrientation.unlockAsync();
-                        // Wait a moment for orientation change to complete
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 100)
-                        );
-                    }
-                    router.back();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                <LeftArrowIcon width={wp(20)} height={hp(20)} stroke="white" />
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const FullscreenButton = () => (
-        <Animated.View
-            style={[styles.fullscreenButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.fullscreenButton}
-                onPress={async () => {
-                    const newFullscreenState = !isFullscreen;
-                    setIsFullscreen(newFullscreenState);
-
-                    if (newFullscreenState) {
-                        // Enter fullscreen - lock to landscape
-                        await ScreenOrientation.lockAsync(
-                            ScreenOrientation.OrientationLock.LANDSCAPE
-                        );
-                    } else {
-                        // Exit fullscreen - unlock to portrait
-                        await ScreenOrientation.unlockAsync();
-                    }
-
-                    showControlsAndStartTimer();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                <FullscreenIcon width={wp(16)} height={hp(16)} stroke="white" />
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const MuteButton = () => (
-        <Animated.View
-            style={[styles.muteButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.muteButton}
-                onPress={() => {
-                    setIsMuted(!isMuted);
-                    showControlsAndStartTimer();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                {isMuted ? (
-                    <View style={styles.unmuteIconContainer}>
-                        <MuteIcon
-                            width={wp(16)}
-                            height={hp(16)}
-                            stroke="white"
-                        />
-                        <View style={styles.unmuteCrossLine} />
-                    </View>
-                ) : (
-                    <MuteIcon width={wp(16)} height={hp(16)} stroke="white" />
-                )}
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const AirplayButton = () => (
-        <Animated.View
-            style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.airplayButton}
-                onPress={() => {
-                    console.log("Airplay pressed");
-                    showControlsAndStartTimer();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                <AirplayIcon width={wp(20)} height={hp(20)} stroke="white" />
-            </TouchableOpacity>
-        </Animated.View>
-    );
 
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
@@ -576,7 +244,8 @@ export default function VideoDetailsScreen() {
                                 paused={!isPlaying}
                                 muted={isMuted}
                                 progressUpdateInterval={500}
-                                {...(Platform.OS === "android"
+                                allowsExternalPlayback={true}
+                                {...(!isIOS
                                     ? {
                                           useTextureView: false,
                                       }
@@ -597,13 +266,104 @@ export default function VideoDetailsScreen() {
                             >
                                 <View style={styles.videoTouchOverlay} />
                             </TouchableWithoutFeedback>
-                            <PlayButton />
-                            <ProgressBar />
-                            <TimerDisplay />
-                            <BackButton />
-                            <AirplayButton />
-                            <MuteButton />
-                            <FullscreenButton />
+                            <PlayButton
+                                isPlaying={isPlaying}
+                                isFinished={isFinished}
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onPlayPause={handlePlayPause}
+                                onSeekBackward={seekBackward}
+                                onSeekForward={seekForward}
+                            />
+                            <ProgressBar
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                thumbPosition={getThumbPosition()}
+                                onProgressBarPress={handleProgressBarPress}
+                            />
+                            <TimerDisplay
+                                currentTime={currentTime}
+                                duration={duration}
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                            />
+                            <ControlButton
+                                type="back"
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onPress={async () => {
+                                    if (isFullscreen) {
+                                        // Force portrait orientation before unlocking for both platforms
+                                        await ScreenOrientation.lockAsync(
+                                            ScreenOrientation.OrientationLock
+                                                .PORTRAIT_UP
+                                        );
+                                        await new Promise((resolve) =>
+                                            setTimeout(resolve, 200)
+                                        );
+                                    }
+                                    router.back();
+                                }}
+                            />
+                            <CastButton
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onShowControls={showControlsAndStartTimer}
+                            />
+                            <ControlButton
+                                type="mute"
+                                isMuted={isMuted}
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onPress={() => {
+                                    setIsMuted(!isMuted);
+                                    showControlsAndStartTimer();
+                                }}
+                            />
+                            <ControlButton
+                                type="fullscreen"
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onPress={async () => {
+                                    const newFullscreenState = !isFullscreen;
+                                    setIsFullscreen(newFullscreenState);
+
+                                    if (newFullscreenState) {
+                                        await ScreenOrientation.lockAsync(
+                                            ScreenOrientation.OrientationLock
+                                                .LANDSCAPE
+                                        );
+                                    } else {
+                                        if (isIOS) {
+                                            // iOS-specific approach: unlock first, then force portrait
+                                            await ScreenOrientation.unlockAsync();
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 100)
+                                            );
+                                            await ScreenOrientation.lockAsync(
+                                                ScreenOrientation
+                                                    .OrientationLock.PORTRAIT_UP
+                                            );
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 200)
+                                            );
+                                            await ScreenOrientation.unlockAsync();
+                                        } else {
+                                            // Android approach: force portrait before unlocking
+                                            await ScreenOrientation.lockAsync(
+                                                ScreenOrientation
+                                                    .OrientationLock.PORTRAIT_UP
+                                            );
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 200)
+                                            );
+                                            await ScreenOrientation.unlockAsync();
+                                        }
+                                    }
+
+                                    showControlsAndStartTimer();
+                                }}
+                            />
                         </View>
                     ) : (
                         <View style={styles.placeholderContainer}>
@@ -664,9 +424,19 @@ export default function VideoDetailsScreen() {
 
                         <View style={styles.tabContent}>
                             {activeTab === "details" ? (
-                                <DetailsTab />
+                                <DetailsTab
+                                    videoDetails={videoDetails}
+                                    shouldShowRealData={shouldShowRealData}
+                                    videoId={videoId}
+                                    isLoading={isLoading}
+                                    error={error}
+                                />
                             ) : (
-                                <NotesTab />
+                                <NotesTab
+                                    videoId={videoId}
+                                    currentTime={currentTime}
+                                    onBeginInputFocus={handleBeginInputFocus}
+                                />
                             )}
                         </View>
                     </View>
@@ -729,38 +499,6 @@ const styles = StyleSheet.create({
         paddingTop: hp(15),
         width: "100%",
     },
-    descriptionContainer: {
-        flex: 1,
-    },
-    descriptionText: {
-        fontSize: fp(12),
-        fontFamily: fonts.poppins,
-        color: colors.gray.dark,
-        lineHeight: hp(12),
-        fontWeight: "400",
-        letterSpacing: wp(0.5),
-        paddingBottom: spacing.xs,
-    },
-    descriptionTitle: {
-        fontFamily: fonts.poppinsSemiBold,
-        fontSize: fp(10),
-        lineHeight: hp(12),
-        color: colors.primary,
-        fontWeight: "600",
-        letterSpacing: wp(0.5),
-        paddingVertical: spacing.xs,
-    },
-    notesContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    notesText: {
-        fontSize: fp(14),
-        fontFamily: fonts.poppins,
-        color: colors.gray.medium,
-        textAlign: "center",
-    },
     container: {
         flex: 1,
         backgroundColor: colors.black,
@@ -786,233 +524,6 @@ const styles = StyleSheet.create({
     video: {
         width: "100%",
         height: "100%",
-    },
-    controlsOverlay: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.1)",
-        zIndex: 10,
-    },
-    controlsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: wp(30),
-    },
-    playButton: {
-        width: wp(50),
-        height: hp(50),
-        borderRadius: wp(25),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    seekButton: {
-        width: wp(36),
-        height: hp(36),
-        borderRadius: wp(18),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    progressBarContainer: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: hp(4),
-        justifyContent: "center",
-        overflow: "visible",
-        zIndex: 10,
-    },
-    progressBarBackground: {
-        height: hp(4),
-        backgroundColor: colors.overlay.light,
-        position: "relative",
-        overflow: "visible",
-    },
-    progressBarFill: {
-        height: hp(4),
-        backgroundColor: colors.alert,
-        position: "absolute",
-        left: 0,
-        top: 0,
-    },
-    progressBarThumb: {
-        position: "absolute",
-        top: hp(-4),
-        width: wp(12),
-        height: hp(12),
-        borderRadius: wp(6),
-        backgroundColor: colors.alert,
-        zIndex: 9999,
-    },
-    statisticsContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingTop: spacing.xs,
-        paddingVertical: 2 * spacing.xxxl,
-    },
-    statisticsItem: {
-        backgroundColor: colors.primary,
-        width: wp(136),
-        height: hp(32),
-        borderRadius: fp(8),
-        justifyContent: "flex-start",
-        alignItems: "center",
-        color: colors.white,
-        flexDirection: "row",
-        paddingHorizontal: wp(10),
-    },
-    statisticsText: {
-        color: colors.white,
-        width: "100%",
-        flex: 1,
-        textAlign: "center",
-        fontFamily: fonts.poppins,
-        fontWeight: "600",
-        fontSize: fp(10),
-        letterSpacing: wp(0.5),
-    },
-    timerContainer: {
-        position: "absolute",
-        bottom: hp(8),
-        left: wp(12),
-        backgroundColor: colors.overlay.timer,
-        paddingHorizontal: wp(8),
-        paddingVertical: hp(4),
-        borderRadius: wp(4),
-        zIndex: 10,
-    },
-    timerText: {
-        color: colors.white,
-        fontSize: fp(10),
-        fontWeight: "500",
-        fontFamily: fonts.poppinsMedium,
-        letterSpacing: wp(0.5),
-    },
-    backButtonContainer: {
-        position: "absolute",
-        top: hp(12),
-        left: wp(12),
-        zIndex: 10,
-    },
-    backButton: {
-        width: wp(40),
-        height: hp(40),
-        borderRadius: wp(20),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    fullscreenButtonContainer: {
-        position: "absolute",
-        bottom: hp(6),
-        right: wp(6),
-        zIndex: 10,
-    },
-    fullscreenButton: {
-        width: wp(48),
-        height: hp(48),
-        borderRadius: wp(24),
-        backgroundColor: "transparent",
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    muteButtonContainer: {
-        position: "absolute",
-        top: hp(12),
-        right: wp(60),
-        zIndex: 10,
-    },
-    muteButton: {
-        width: wp(40),
-        height: hp(40),
-        borderRadius: wp(20),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    airplayButtonContainer: {
-        position: "absolute",
-        top: hp(12),
-        right: wp(12),
-        zIndex: 10,
-    },
-    airplayButton: {
-        width: wp(40),
-        height: hp(40),
-        borderRadius: wp(20),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    unmuteIconContainer: {
-        position: "relative",
-        width: wp(16),
-        height: hp(16),
-    },
-    unmuteCrossLine: {
-        position: "absolute",
-        top: hp(7),
-        left: wp(-2),
-        width: wp(20),
-        height: hp(2),
-        backgroundColor: colors.white,
-        transform: [{ rotate: "45deg" }],
     },
     placeholderContainer: {
         width: "100%",
@@ -1044,17 +555,6 @@ const styles = StyleSheet.create({
         marginBottom: hp(10),
         color: colors.gray.dark,
         letterSpacing: wp(0.5),
-    },
-    subtitle: {
-        fontSize: fp(16),
-        marginBottom: hp(20),
-        color: colors.gray.medium,
-    },
-    placeholder: {
-        fontSize: fp(14),
-        textAlign: "center",
-        color: colors.gray.placeholder,
-        lineHeight: hp(20),
     },
     videoTouchOverlay: {
         position: "absolute",

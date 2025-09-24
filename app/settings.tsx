@@ -12,19 +12,20 @@ import {
     setNotificationId as setReminderNotificationId,
     setTime as setReminderTime,
 } from "@/store/slices/reminderSlice";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import * as Haptics from "expo-haptics";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-    Alert,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -36,6 +37,8 @@ export default function SettingsScreen() {
     const [reminderEnabled, setReminderEnabled] = useState(false);
     const [time, setTime] = useState<Date>(new Date());
     const [showAndroidPicker, setShowAndroidPicker] = useState(false);
+    const [longPressActive, setLongPressActive] = useState(false);
+    const overlayOpacity = useSharedValue(0);
 
     useEffect(() => {
         setReminderEnabled(reminderState.enabled);
@@ -45,7 +48,7 @@ export default function SettingsScreen() {
     }, [reminderState.enabled, reminderState.hour, reminderState.minute]);
 
     useEffect(() => {
-        if (Platform.OS === "android") {
+        if (!isIOS) {
             Notifications.setNotificationChannelAsync("default", {
                 name: "Default",
                 importance: Notifications.AndroidImportance.DEFAULT,
@@ -62,7 +65,7 @@ export default function SettingsScreen() {
             repeats: true,
             hour,
             minute,
-            ...(Platform.OS === "android" ? { channelId: "default" } : {}),
+            ...(!isIOS ? { channelId: "default" } : {}),
         } as unknown as Notifications.NotificationTriggerInput;
 
         const id = await Notifications.scheduleNotificationAsync({
@@ -144,6 +147,50 @@ export default function SettingsScreen() {
         }
     };
 
+    const handleLongPressStart = useCallback(() => {
+        setLongPressActive(true);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        overlayOpacity.value = withTiming(1, {
+            duration: 300,
+            easing: Easing.out(Easing.quad),
+        });
+    }, [overlayOpacity]);
+
+    const handleLongPressEnd = useCallback(() => {
+        setLongPressActive(false);
+
+        overlayOpacity.value = withTiming(0, {
+            duration: 200,
+            easing: Easing.in(Easing.quad),
+        });
+    }, [overlayOpacity]);
+
+    const handleLongPress = useCallback(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        setLongPressActive(false);
+
+        overlayOpacity.value = 0;
+
+        Alert.alert("Logout", "Are you sure you want to logout?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Logout",
+                style: "destructive",
+                onPress: () => {
+                    dispatch(logout());
+                    router.replace("/login" as any);
+                },
+            },
+        ]);
+    }, [dispatch, overlayOpacity]);
+
+    const animatedOverlayStyle = useAnimatedStyle(() => {
+        return {
+            opacity: overlayOpacity.value,
+        };
+    });
+
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
             <View style={styles.headerRow}>
@@ -154,22 +201,22 @@ export default function SettingsScreen() {
                 <View style={{ width: fp(18) }} />
             </View>
             <Pressable
-                style={styles.avatarSection}
-                onLongPress={() =>
-                    Alert.alert("Logout", "Are you sure you want to logout?", [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                            text: "Logout",
-                            style: "destructive",
-                            onPress: () => {
-                                dispatch(logout());
-                                router.replace("/login" as any);
-                            },
-                        },
-                    ])
-                }
-                delayLongPress={2000}
+                style={[
+                    styles.avatarSection,
+                    longPressActive && styles.avatarSectionLongPress,
+                ]}
+                onLongPress={handleLongPress}
+                onPressIn={handleLongPressStart}
+                onPressOut={handleLongPressEnd}
+                delayLongPress={1000}
             >
+                {longPressActive && (
+                    <Animated.View
+                        style={[styles.longPressOverlay, animatedOverlayStyle]}
+                    >
+                        <Text style={styles.longPressText}>Hold to logout</Text>
+                    </Animated.View>
+                )}
                 <View style={styles.avatarCircle}>
                     <PersonIcon width={fp(28)} height={fp(28)} />
                 </View>
@@ -191,7 +238,7 @@ export default function SettingsScreen() {
                     <View style={styles.timePickerContainer}>
                         <ClockIcon width={fp(24)} height={fp(24)} />
 
-                        {Platform.OS === "ios" ? (
+                        {isIOS ? (
                             <DateTimePicker
                                 value={time}
                                 mode="time"
@@ -215,7 +262,7 @@ export default function SettingsScreen() {
                             </Pressable>
                         )}
 
-                        {showAndroidPicker && Platform.OS === "android" && (
+                        {showAndroidPicker && !isIOS && (
                             <DateTimePicker
                                 value={time}
                                 mode="time"
@@ -266,6 +313,46 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignSelf: "center",
         gap: spacing.md,
+        position: "relative",
+        overflow: "hidden",
+    },
+    avatarSectionLongPress: {
+        backgroundColor: "#f8f9fa",
+        borderRadius: fp(12),
+        paddingHorizontal: spacing.md,
+        paddingVertical: hp(8),
+        shadowColor: "#6b7280",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    longPressOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(107, 114, 128, 0.15)",
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: fp(12),
+        zIndex: 1,
+    },
+    longPressText: {
+        color: "#374151",
+        fontFamily: fonts.poppinsSemiBold,
+        fontSize: fp(12),
+        fontWeight: "600",
+        textAlign: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        paddingHorizontal: wp(8),
+        paddingVertical: hp(4),
+        borderRadius: fp(8),
+        overflow: "hidden",
     },
     avatarCircle: {
         width: fp(64),

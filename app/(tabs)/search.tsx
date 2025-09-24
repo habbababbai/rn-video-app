@@ -4,6 +4,7 @@ import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearchInfinite } from "@/hooks/useYouTubeApi";
 import { CustomSortOrder, YouTubeVideo } from "@/services/youtubeApi";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, {
@@ -370,6 +371,12 @@ const styles = StyleSheet.create({
         letterSpacing: wp(0.5),
         lineHeight: hp(20),
         textAlignVertical: "center",
+        includeFontPadding: false,
+        textAlign: "left",
+        ...(!isIOS && {
+            paddingTop: hp(2),
+            paddingBottom: hp(2),
+        }),
     },
     listContainer: {
         paddingHorizontal: wp(20),
