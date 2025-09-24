@@ -1,14 +1,13 @@
-import BackwardIcon from "@/assets/images/svg/backward.svg";
-import ForwardIcon from "@/assets/images/svg/forward.svg";
-import FullscreenIcon from "@/assets/images/svg/fullscreen.svg";
-import LeftArrowIcon from "@/assets/images/svg/left-arrow.svg";
 import LikesIcon from "@/assets/images/svg/likes.svg";
-import MuteIcon from "@/assets/images/svg/mute.svg";
-import PauseIcon from "@/assets/images/svg/pause.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
-import PlayIcon from "@/assets/images/svg/play.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
+import { BackButton } from "@/components/BackButton";
 import { CastButton } from "@/components/CastButton";
+import { FullscreenButton } from "@/components/FullscreenButton";
+import { MuteButton } from "@/components/MuteButton";
+import { PlayButton } from "@/components/PlayButton";
+import { ProgressBar } from "@/components/ProgressBar";
+import { TimerDisplay } from "@/components/TimerDisplay";
 import VideoNotes from "@/components/VideoNotes";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
@@ -250,6 +249,13 @@ export default function VideoDetailsScreen() {
     const shouldShowRealData =
         videoId !== "placeholder-local-tab" && !error && videoDetails;
 
+    const handleBeginInputFocus = () => {
+        if (isPlaying) {
+            setIsPlaying(false);
+        }
+        showControlsAndStartTimer();
+    };
+
     const handlePlayPause = () => {
         if (isFinished) {
             videoRef.current?.seek(0);
@@ -318,198 +324,6 @@ export default function VideoDetailsScreen() {
         opacity: controlsOpacity.value,
     }));
 
-    const PlayButton = () => (
-        <Animated.View
-            style={[styles.controlsOverlay, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <View style={styles.controlsRow}>
-                <TouchableOpacity
-                    style={styles.seekButton}
-                    onPress={seekBackward}
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <BackwardIcon
-                        width={wp(20)}
-                        height={hp(20)}
-                        stroke="white"
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={handlePlayPause}
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    {isFinished ? (
-                        <PlayIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            stroke="white"
-                        />
-                    ) : isPlaying ? (
-                        <PauseIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            stroke="white"
-                        />
-                    ) : (
-                        <PlayIcon
-                            width={wp(24)}
-                            height={hp(24)}
-                            stroke="white"
-                        />
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.seekButton}
-                    onPress={seekForward}
-                    activeOpacity={0.6}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                    <ForwardIcon
-                        width={wp(20)}
-                        height={hp(20)}
-                        stroke="white"
-                    />
-                </TouchableOpacity>
-            </View>
-        </Animated.View>
-    );
-
-    const ProgressBar = () => (
-        <Animated.View
-            style={[styles.progressBarContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.progressBarBackground}
-                onPress={handleProgressBarPress}
-                activeOpacity={0.8}
-                hitSlop={{ top: hp(20), bottom: hp(20), left: 0, right: 0 }}
-            >
-                <View
-                    style={[
-                        styles.progressBarFill,
-                        { width: getThumbPosition() },
-                    ]}
-                />
-                <View
-                    style={[
-                        styles.progressBarThumb,
-                        { left: getThumbPosition() - wp(6) },
-                    ]}
-                />
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
-
-    const TimerDisplay = () => (
-        <Animated.View
-            style={[styles.timerContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <Text style={styles.timerText}>
-                {formatTime(currentTime)} / {formatTime(duration)}
-            </Text>
-        </Animated.View>
-    );
-
-    const BackButton = () => (
-        <Animated.View
-            style={[styles.backButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={async () => {
-                    // Restore orientation first, then navigate back
-                    if (isFullscreen) {
-                        await ScreenOrientation.unlockAsync();
-                        // Wait a moment for orientation change to complete
-                        await new Promise((resolve) =>
-                            setTimeout(resolve, 100)
-                        );
-                    }
-                    router.back();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                <LeftArrowIcon width={wp(20)} height={hp(20)} stroke="white" />
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const FullscreenButton = () => (
-        <Animated.View
-            style={[styles.fullscreenButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.fullscreenButton}
-                onPress={async () => {
-                    const newFullscreenState = !isFullscreen;
-                    setIsFullscreen(newFullscreenState);
-
-                    if (newFullscreenState) {
-                        // Enter fullscreen - lock to landscape
-                        await ScreenOrientation.lockAsync(
-                            ScreenOrientation.OrientationLock.LANDSCAPE
-                        );
-                    } else {
-                        // Exit fullscreen - unlock to portrait
-                        await ScreenOrientation.unlockAsync();
-                    }
-
-                    showControlsAndStartTimer();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                <FullscreenIcon width={wp(16)} height={hp(16)} stroke="white" />
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
-    const MuteButton = () => (
-        <Animated.View
-            style={[styles.muteButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.muteButton}
-                onPress={() => {
-                    setIsMuted(!isMuted);
-                    showControlsAndStartTimer();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-                {isMuted ? (
-                    <View style={styles.unmuteIconContainer}>
-                        <MuteIcon
-                            width={wp(16)}
-                            height={hp(16)}
-                            stroke="white"
-                        />
-                        <View style={styles.unmuteCrossLine} />
-                    </View>
-                ) : (
-                    <MuteIcon width={wp(16)} height={hp(16)} stroke="white" />
-                )}
-            </TouchableOpacity>
-        </Animated.View>
-    );
-
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
         const progress = Math.max(
@@ -576,17 +390,73 @@ export default function VideoDetailsScreen() {
                             >
                                 <View style={styles.videoTouchOverlay} />
                             </TouchableWithoutFeedback>
-                            <PlayButton />
-                            <ProgressBar />
-                            <TimerDisplay />
-                            <BackButton />
+                            <PlayButton
+                                isPlaying={isPlaying}
+                                isFinished={isFinished}
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onPlayPause={handlePlayPause}
+                                onSeekBackward={seekBackward}
+                                onSeekForward={seekForward}
+                            />
+                            <ProgressBar
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                thumbPosition={getThumbPosition()}
+                                onProgressBarPress={handleProgressBarPress}
+                            />
+                            <TimerDisplay
+                                currentTime={currentTime}
+                                duration={duration}
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                            />
+                            <BackButton
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onBack={async () => {
+                                    if (isFullscreen) {
+                                        await ScreenOrientation.unlockAsync();
+                                        await new Promise((resolve) =>
+                                            setTimeout(resolve, 100)
+                                        );
+                                    }
+                                    router.back();
+                                }}
+                            />
                             <CastButton
                                 showControls={showControls}
                                 controlsAnimatedStyle={controlsAnimatedStyle}
                                 onShowControls={showControlsAndStartTimer}
                             />
-                            <MuteButton />
-                            <FullscreenButton />
+                            <MuteButton
+                                isMuted={isMuted}
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onMute={() => {
+                                    setIsMuted(!isMuted);
+                                    showControlsAndStartTimer();
+                                }}
+                            />
+                            <FullscreenButton
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onFullscreen={async () => {
+                                    const newFullscreenState = !isFullscreen;
+                                    setIsFullscreen(newFullscreenState);
+
+                                    if (newFullscreenState) {
+                                        await ScreenOrientation.lockAsync(
+                                            ScreenOrientation.OrientationLock
+                                                .LANDSCAPE
+                                        );
+                                    } else {
+                                        await ScreenOrientation.unlockAsync();
+                                    }
+
+                                    showControlsAndStartTimer();
+                                }}
+                            />
                         </View>
                     ) : (
                         <View style={styles.placeholderContainer}>
@@ -647,9 +517,17 @@ export default function VideoDetailsScreen() {
 
                         <View style={styles.tabContent}>
                             {activeTab === "details" ? (
-                                <DetailsTab />
+                                <DetailsTab
+                                    videoDetails={videoDetails}
+                                    shouldShowRealData={shouldShowRealData}
+                                    videoId={videoId}
+                                />
                             ) : (
-                                <NotesTab />
+                                <NotesTab
+                                    videoId={videoId}
+                                    currentTime={currentTime}
+                                    onBeginInputFocus={handleBeginInputFocus}
+                                />
                             )}
                         </View>
                     </View>
