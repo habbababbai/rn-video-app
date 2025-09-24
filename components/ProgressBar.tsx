@@ -9,6 +9,7 @@ interface ProgressBarProps {
     controlsAnimatedStyle: any;
     thumbPosition: number;
     onProgressBarPress: (event: any) => void;
+    isFullscreen?: boolean;
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
@@ -16,10 +17,15 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     controlsAnimatedStyle,
     thumbPosition,
     onProgressBarPress,
+    isFullscreen = false,
 }) => {
     return (
         <Animated.View
-            style={[styles.progressBarContainer, controlsAnimatedStyle]}
+            style={[
+                styles.progressBarContainer,
+                isFullscreen && styles.fullscreenProgressBarContainer,
+                controlsAnimatedStyle,
+            ]}
             pointerEvents={showControls ? "auto" : "none"}
         >
             <TouchableOpacity
@@ -52,6 +58,9 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         overflow: "visible",
         zIndex: 10,
+    },
+    fullscreenProgressBarContainer: {
+        bottom: hp(20), // Add bottom padding in fullscreen mode
     },
     progressBarBackground: {
         height: hp(4),

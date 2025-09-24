@@ -42,7 +42,17 @@ export const ControlButton: React.FC<ControlButtonProps> = ({
                             height={hp(16)}
                             stroke="white"
                         />
-                        <View style={styles.unmuteCrossLine} />
+                        <View style={styles.unmuteCrossLine}>
+                            <View
+                                style={{
+                                    width: wp(16),
+                                    height: hp(2),
+                                    backgroundColor: colors.white,
+                                    borderRadius: hp(1),
+                                    transform: [{ rotate: "45deg" }],
+                                }}
+                            />
+                        </View>
                     </View>
                 ) : (
                     <MuteIcon width={wp(16)} height={hp(16)} stroke="white" />
@@ -160,14 +170,16 @@ const styles = StyleSheet.create({
         position: "relative",
         width: wp(16),
         height: hp(16),
+        justifyContent: "center",
+        alignItems: "center",
     },
     unmuteCrossLine: {
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: wp(20),
-        height: hp(2),
-        backgroundColor: colors.white,
-        transform: [{ rotate: "45deg" }, { translateX: -wp(10) }],
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: "center",
+        alignItems: "center",
     },
 });
