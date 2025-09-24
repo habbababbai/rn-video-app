@@ -1,15 +1,9 @@
 import AirplayIcon from "@/assets/images/svg/airplay.svg";
 import { colors } from "@/constants/colors";
-import { hp, spacing, wp } from "@/utils/responsive";
 import { isIOS } from "@/utils/platform";
+import { hp, wp } from "@/utils/responsive";
 import React from "react";
-import {
-    Alert,
-    Platform,
-    StyleSheet,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { CastButton as GoogleCastButton } from "react-native-google-cast";
 import Animated from "react-native-reanimated";
 
