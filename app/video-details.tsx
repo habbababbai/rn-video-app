@@ -1,14 +1,13 @@
-import LikesIcon from "@/assets/images/svg/likes.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
-import ViewsIcon from "@/assets/images/svg/views.svg";
 import { BackButton } from "@/components/BackButton";
 import { CastButton } from "@/components/CastButton";
+import { DetailsTab } from "@/components/DetailsTab";
 import { FullscreenButton } from "@/components/FullscreenButton";
 import { MuteButton } from "@/components/MuteButton";
+import { NotesTab } from "@/components/NotesTab";
 import { PlayButton } from "@/components/PlayButton";
 import { ProgressBar } from "@/components/ProgressBar";
 import { TimerDisplay } from "@/components/TimerDisplay";
-import VideoNotes from "@/components/VideoNotes";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideoDetails } from "@/hooks/useYouTubeApi";
@@ -27,10 +26,7 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native";
-import {
-    GestureHandlerRootView,
-    ScrollView,
-} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -97,116 +93,6 @@ export default function VideoDetailsScreen() {
     const dismissKeyboard = useCallback(() => {
         Keyboard.dismiss();
     }, []);
-
-    const DetailsTab = () => {
-        if (isLoading) {
-            return (
-                <View style={styles.descriptionContainer}>
-                    <Text style={styles.descriptionText}>
-                        Loading video details...
-                    </Text>
-                </View>
-            );
-        }
-
-        if (error || !videoDetails) {
-            return (
-                <View style={styles.descriptionContainer}>
-                    <Text style={styles.descriptionTitle}>Description</Text>
-                    <Text style={styles.descriptionText} selectable={true}>
-                        {videoId === "placeholder-local-tab"
-                            ? "This is a placeholder video for testing purposes. Broadchurch is a British crime drama television series created and written by Chris Chibnall."
-                            : "Failed to load video details. Please try again."}
-                    </Text>
-                    <Text style={styles.descriptionTitle}>Statistics</Text>
-                    <View style={styles.statisticsContainer}>
-                        <View style={styles.statisticsItem}>
-                            <ViewsIcon
-                                width={wp(20)}
-                                height={hp(20)}
-                                stroke="white"
-                            />
-                            <Text style={styles.statisticsText}>
-                                {videoId === "placeholder-local-tab"
-                                    ? "1.2M views"
-                                    : "0 views"}
-                            </Text>
-                        </View>
-                        <View style={styles.statisticsItem}>
-                            <LikesIcon
-                                width={wp(20)}
-                                height={hp(20)}
-                                stroke="white"
-                            />
-                            <Text style={styles.statisticsText}>
-                                {videoId === "placeholder-local-tab"
-                                    ? "45K likes"
-                                    : "0 likes"}
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-            );
-        }
-
-        const formatNumber = (num: string) => {
-            const number = parseInt(num);
-            if (number >= 9999999) {
-                return `${(number / 9999999).toFixed(1)}M`;
-            } else if (number >= 1000) {
-                return `${(number / 1000).toFixed(1)}K`;
-            }
-            return number.toString();
-        };
-
-        return (
-            <ScrollView style={styles.descriptionContainer}>
-                <Text style={styles.descriptionTitle}>Description</Text>
-                <Text style={styles.descriptionText} selectable={true}>
-                    {videoDetails.snippet.description ||
-                        "No description available."}
-                </Text>
-                <Text style={styles.descriptionTitle}>Statistics</Text>
-                <View style={styles.statisticsContainer}>
-                    <View style={styles.statisticsItem}>
-                        <ViewsIcon
-                            width={wp(20)}
-                            height={hp(20)}
-                            stroke="white"
-                        />
-                        <Text style={styles.statisticsText}>
-                            {formatNumber(videoDetails.statistics.viewCount)}{" "}
-                            views
-                        </Text>
-                    </View>
-                    <View style={styles.statisticsItem}>
-                        <LikesIcon
-                            width={wp(20)}
-                            height={hp(20)}
-                            stroke="white"
-                        />
-                        <Text style={styles.statisticsText}>
-                            {formatNumber(videoDetails.statistics.likeCount)}{" "}
-                            likes
-                        </Text>
-                    </View>
-                </View>
-            </ScrollView>
-        );
-    };
-
-    const NotesTab = () => (
-        <VideoNotes
-            videoId={videoId}
-            currentVideoTime={currentTime}
-            onBeginInputFocus={() => {
-                if (isPlaying) {
-                    setIsPlaying(false);
-                }
-                showControlsAndStartTimer();
-            }}
-        />
-    );
 
     const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
@@ -521,6 +407,8 @@ export default function VideoDetailsScreen() {
                                     videoDetails={videoDetails}
                                     shouldShowRealData={shouldShowRealData}
                                     videoId={videoId}
+                                    isLoading={isLoading}
+                                    error={error}
                                 />
                             ) : (
                                 <NotesTab

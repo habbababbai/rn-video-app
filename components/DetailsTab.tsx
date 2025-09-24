@@ -68,11 +68,7 @@ export const DetailsTab: React.FC<DetailsTabProps> = ({
     }
 
     return (
-        <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-        >
+        <ScrollView style={styles.descriptionContainer}>
             <Text style={styles.descriptionTitle}>Description</Text>
             <Text style={styles.descriptionText} selectable={true}>
                 {videoDetails.snippet.description ||
@@ -81,21 +77,13 @@ export const DetailsTab: React.FC<DetailsTabProps> = ({
             <Text style={styles.descriptionTitle}>Statistics</Text>
             <View style={styles.statisticsContainer}>
                 <View style={styles.statisticsItem}>
-                    <ViewsIcon
-                        width={wp(16)}
-                        height={hp(16)}
-                        stroke={colors.white}
-                    />
+                    <ViewsIcon width={wp(20)} height={hp(20)} stroke="white" />
                     <Text style={styles.statisticsText}>
                         {formatNumber(videoDetails.statistics.viewCount)} views
                     </Text>
                 </View>
                 <View style={styles.statisticsItem}>
-                    <LikesIcon
-                        width={wp(16)}
-                        height={hp(16)}
-                        stroke={colors.white}
-                    />
+                    <LikesIcon width={wp(20)} height={hp(20)} stroke="white" />
                     <Text style={styles.statisticsText}>
                         {formatNumber(videoDetails.statistics.likeCount)} likes
                     </Text>
@@ -107,27 +95,25 @@ export const DetailsTab: React.FC<DetailsTabProps> = ({
 
 const styles = StyleSheet.create({
     descriptionContainer: {
-        padding: spacing.lg,
-    },
-    scrollView: {
         flex: 1,
     },
-    scrollContent: {
-        padding: spacing.lg,
+    descriptionText: {
+        fontSize: fp(12),
+        fontFamily: fonts.poppins,
+        color: colors.gray.dark,
+        lineHeight: hp(12),
+        fontWeight: "400",
+        letterSpacing: wp(0.5),
+        paddingBottom: spacing.xs,
     },
     descriptionTitle: {
-        fontSize: fp(16),
-        fontWeight: "600",
-        color: colors.white,
-        marginBottom: spacing.sm,
         fontFamily: fonts.poppinsSemiBold,
-    },
-    descriptionText: {
-        fontSize: fp(14),
-        lineHeight: hp(20),
-        color: colors.gray.light,
-        marginBottom: spacing.lg,
-        fontFamily: fonts.poppins,
+        fontSize: fp(10),
+        lineHeight: hp(12),
+        color: colors.primary,
+        fontWeight: "600",
+        letterSpacing: wp(0.5),
+        paddingVertical: spacing.xs,
     },
     statisticsContainer: {
         flexDirection: "row",
@@ -145,12 +131,15 @@ const styles = StyleSheet.create({
         color: colors.white,
         flexDirection: "row",
         paddingHorizontal: wp(10),
-        gap: wp(8),
     },
     statisticsText: {
-        fontSize: fp(12),
-        fontWeight: "500",
         color: colors.white,
-        fontFamily: fonts.poppinsMedium,
+        width: "100%",
+        flex: 1,
+        textAlign: "center",
+        fontFamily: fonts.poppins,
+        fontWeight: "600",
+        fontSize: fp(10),
+        letterSpacing: wp(0.5),
     },
 });
