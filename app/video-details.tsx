@@ -36,18 +36,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Video, { VideoRef } from "react-native-video";
 
 export default function VideoDetailsScreen() {
-    // ===== ROUTER & PARAMS =====
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
     const router = useRouter();
 
-    // ===== API HOOKS =====
     const {
         data: videoDetails,
         isLoading,
         error,
     } = useYouTubeVideoDetails(videoId || "");
 
-    // ===== REFS =====
     const videoRef = useRef<VideoRef>(null);
     const insets = useSafeAreaInsets();
     const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -55,7 +52,6 @@ export default function VideoDetailsScreen() {
     );
     const lastProgressUpdateRef = useRef(0);
 
-    // ===== STATE =====
     const [isPlaying, setIsPlaying] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -65,16 +61,13 @@ export default function VideoDetailsScreen() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
 
-    // ===== ANIMATED VALUES =====
     const keyboardHeight = useSharedValue(0);
     const controlsOpacity = useSharedValue(1);
 
-    // ===== CONSTANTS =====
     const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
     const shouldShowRealData =
         videoId !== "placeholder-local-tab" && !error && !!videoDetails;
 
-    // ===== ANIMATED STYLES =====
     const animatedStyle = useAnimatedStyle(() => {
         return {
             transform: [{ translateY: -keyboardHeight.value }],
@@ -85,7 +78,6 @@ export default function VideoDetailsScreen() {
         opacity: controlsOpacity.value,
     }));
 
-    // ===== USEEFFECTS =====
     useEffect(() => {
         const showEvent =
             Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -119,7 +111,6 @@ export default function VideoDetailsScreen() {
         };
     }, []);
 
-    // ===== CALLBACKS =====
     const dismissKeyboard = useCallback(() => {
         Keyboard.dismiss();
     }, []);
@@ -142,7 +133,6 @@ export default function VideoDetailsScreen() {
         startHideTimer();
     }, [controlsOpacity, startHideTimer]);
 
-    // ===== UTILITY FUNCTIONS =====
     const getProgressBarWidth = () => {
         const { width, height } = Dimensions.get("window");
         // In fullscreen (landscape), use the larger dimension
@@ -162,7 +152,6 @@ export default function VideoDetailsScreen() {
         setCurrentTime(time);
     };
 
-    // ===== EVENT HANDLERS =====
     const handleBeginInputFocus = () => {
         if (isPlaying) {
             setIsPlaying(false);
