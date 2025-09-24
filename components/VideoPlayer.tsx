@@ -199,7 +199,6 @@ const VideoPlayerComponent = (
 
     const handleBackPress = async () => {
         if (isFullscreen) {
-            // Force portrait orientation before unlocking for both platforms
             await ScreenOrientation.lockAsync(
                 ScreenOrientation.OrientationLock.PORTRAIT_UP
             );
