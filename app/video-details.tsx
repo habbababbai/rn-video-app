@@ -1,4 +1,3 @@
-import AirplayIcon from "@/assets/images/svg/airplay.svg";
 import BackwardIcon from "@/assets/images/svg/backward.svg";
 import ForwardIcon from "@/assets/images/svg/forward.svg";
 import FullscreenIcon from "@/assets/images/svg/fullscreen.svg";
@@ -9,6 +8,7 @@ import PauseIcon from "@/assets/images/svg/pause.svg";
 import PersonIcon from "@/assets/images/svg/person.svg";
 import PlayIcon from "@/assets/images/svg/play.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
+import { CastButton } from "@/components/CastButton";
 import VideoNotes from "@/components/VideoNotes";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
@@ -19,7 +19,6 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-    Alert,
     Dimensions,
     Keyboard,
     Platform,
@@ -33,11 +32,6 @@ import {
     GestureHandlerRootView,
     ScrollView,
 } from "react-native-gesture-handler";
-import {
-    CastButton,
-    useCastState,
-    useRemoteMediaClient,
-} from "react-native-google-cast";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -68,9 +62,6 @@ export default function VideoDetailsScreen() {
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
     const keyboardHeight = useSharedValue(0);
     const lastProgressUpdateRef = useRef(0);
-
-    const castState = useCastState();
-    const remoteMediaClient = useRemoteMediaClient();
 
     const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
 
@@ -519,51 +510,6 @@ export default function VideoDetailsScreen() {
         </Animated.View>
     );
 
-    const CastButtonComponent = () => {
-        const handleCast = () => {
-            if (Platform.OS === "ios") {
-                // For iOS, show AirPlay instructions since Google Cast might not work properly
-                Alert.alert(
-                    "AirPlay",
-                    "To cast this video on iOS:\n\n1. Swipe down from top-right corner\n2. Tap the AirPlay button in Control Center\n3. Select your Apple TV or AirPlay device\n\nMake sure your device and TV are on the same Wi-Fi network.",
-                    [{ text: "Got it!" }]
-                );
-            }
-            showControlsAndStartTimer();
-        };
-
-        return (
-            <Animated.View
-                style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
-                pointerEvents={showControls ? "auto" : "none"}
-            >
-                {Platform.OS === "ios" ? (
-                    <TouchableOpacity
-                        style={styles.airplayButton}
-                        onPress={handleCast}
-                        activeOpacity={0.6}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                        <AirplayIcon
-                            width={wp(20)}
-                            height={hp(20)}
-                            stroke="white"
-                        />
-                    </TouchableOpacity>
-                ) : (
-                    <View style={styles.airplayButton}>
-                        <AirplayIcon
-                            width={wp(20)}
-                            height={hp(20)}
-                            stroke="white"
-                        />
-                        <CastButton style={styles.invisibleCastButton} />
-                    </View>
-                )}
-            </Animated.View>
-        );
-    };
-
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
         const progress = Math.max(
@@ -634,7 +580,11 @@ export default function VideoDetailsScreen() {
                             <ProgressBar />
                             <TimerDisplay />
                             <BackButton />
-                            <CastButtonComponent />
+                            <CastButton
+                                showControls={showControls}
+                                controlsAnimatedStyle={controlsAnimatedStyle}
+                                onShowControls={showControlsAndStartTimer}
+                            />
                             <MuteButton />
                             <FullscreenButton />
                         </View>
