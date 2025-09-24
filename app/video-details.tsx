@@ -295,10 +295,15 @@ export default function VideoDetailsScreen() {
                                 controlsAnimatedStyle={controlsAnimatedStyle}
                                 onPress={async () => {
                                     if (isFullscreen) {
-                                        await ScreenOrientation.unlockAsync();
-                                        await new Promise((resolve) =>
-                                            setTimeout(resolve, 100)
+                                        // Force portrait orientation before unlocking for both platforms
+                                        await ScreenOrientation.lockAsync(
+                                            ScreenOrientation.OrientationLock
+                                                .PORTRAIT_UP
                                         );
+                                        await new Promise((resolve) =>
+                                            setTimeout(resolve, 200)
+                                        );
+                                        
                                     }
                                     router.back();
                                 }}
@@ -332,7 +337,31 @@ export default function VideoDetailsScreen() {
                                                 .LANDSCAPE
                                         );
                                     } else {
-                                        await ScreenOrientation.unlockAsync();
+                                        if (Platform.OS === "ios") {
+                                            // iOS-specific approach: unlock first, then force portrait
+                                            await ScreenOrientation.unlockAsync();
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 100)
+                                            );
+                                            await ScreenOrientation.lockAsync(
+                                                ScreenOrientation
+                                                    .OrientationLock.PORTRAIT_UP
+                                            );
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 200)
+                                            );
+                                            await ScreenOrientation.unlockAsync();
+                                        } else {
+                                            // Android approach: force portrait before unlocking
+                                            await ScreenOrientation.lockAsync(
+                                                ScreenOrientation
+                                                    .OrientationLock.PORTRAIT_UP
+                                            );
+                                            await new Promise((resolve) =>
+                                                setTimeout(resolve, 200)
+                                            );
+                                            await ScreenOrientation.unlockAsync();
+                                        }
                                     }
 
                                     showControlsAndStartTimer();
