@@ -135,8 +135,14 @@ export default function HomeScreen() {
                 <View style={styles.section}>
                     <View style={styles.sectionTitleContainer}>
                         <Text style={styles.sectionTitle}>{keyword}</Text>
-                        <TouchableWithoutFeedback 
-                            onPress={() => router.push(`/(tabs)/search?keyword=${encodeURIComponent(keyword)}`)}
+                        <TouchableWithoutFeedback
+                            onPress={() =>
+                                router.push(
+                                    `/(tabs)/search?keyword=${encodeURIComponent(
+                                        keyword
+                                    )}`
+                                )
+                            }
                         >
                             <Text style={styles.showMoreText}>Show more</Text>
                         </TouchableWithoutFeedback>
@@ -173,7 +179,13 @@ export default function HomeScreen() {
                         <Text style={styles.searchText}>Search videos</Text>
                     </View>
                 </TouchableWithoutFeedback>
-                <SettingsIcon />
+                <TouchableWithoutFeedback
+                    onPress={() => router.push("/settings")}
+                >
+                    <View>
+                        <SettingsIcon />
+                    </View>
+                </TouchableWithoutFeedback>
             </View>
 
             <FlatList
