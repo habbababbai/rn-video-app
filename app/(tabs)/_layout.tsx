@@ -6,13 +6,16 @@ import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { Tabs } from "expo-router";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function TabLayout() {
     return (
         <SafeAreaView
-            style={{ flex: 1, backgroundColor: colors.secondary }}
+            style={{
+                flex: 1,
+                backgroundColor:
+            }}
             edges={["bottom"]}
         >
             <Tabs
@@ -22,6 +25,7 @@ export default function TabLayout() {
                     tabBarStyle: {
                         backgroundColor: colors.secondary,
                         paddingTop: hp(8),
+                        height: hp(72),
                     },
                     tabBarLabelStyle: styles.tabBarLabelStyle,
                     headerShown: false,
@@ -50,7 +54,7 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
     tabBarLabelStyle: {
-        padding: spacing.sm,
+        padding: Platform.OS === "android" ? hp(6) : spacing.sm,
         fontFamily: fonts.poppins,
         fontSize: fp(16),
         letterSpacing: wp(1),
