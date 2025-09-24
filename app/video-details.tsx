@@ -64,6 +64,9 @@ export default function VideoDetailsScreen() {
     const keyboardHeight = useSharedValue(0);
     const lastProgressUpdateRef = useRef(0);
 
+
+    const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
+
     useEffect(() => {
         const showEvent =
             Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -245,8 +248,6 @@ export default function VideoDetailsScreen() {
         // In fullscreen (landscape), use the larger dimension
         return isFullscreen ? Math.max(width, height) : width;
     };
-
-    const videoSource = require("@/assets/videos/broadchurch.mp4");
 
     const shouldShowRealData =
         videoId !== "placeholder-local-tab" && !error && videoDetails;
@@ -543,129 +544,6 @@ export default function VideoDetailsScreen() {
         showControlsAndStartTimer();
     };
 
-    const Content = () => (
-        <TouchableWithoutFeedback onPress={dismissKeyboard}>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-                <Stack.Screen
-                    options={{
-                        headerShown: false,
-                    }}
-                />
-                <StatusBar style="light" />
-
-                {videoSource ? (
-                    <View
-                        style={[
-                            styles.videoContainer,
-                            isFullscreen && styles.fullscreenVideoContainer,
-                        ]}
-                    >
-                        <Video
-                            ref={videoRef}
-                            source={videoSource}
-                            style={styles.video}
-                            controls={false}
-                            resizeMode="contain"
-                            paused={!isPlaying}
-                            muted={isMuted}
-                            progressUpdateInterval={500}
-                            {...(Platform.OS === "android"
-                                ? {
-                                      useTextureView: false,
-                                  }
-                                : {})}
-                            onError={handleVideoError}
-                            onLoad={(data) => {
-                                console.log("Video Loaded:", data);
-                                setIsFinished(false);
-                                setDuration(data.duration);
-                                setCurrentTime(0);
-                            }}
-                            onEnd={handleVideoEnd}
-                            onProgress={handleVideoProgress}
-                        />
-
-                        <TouchableWithoutFeedback
-                            onPress={showControlsAndStartTimer}
-                        >
-                            <View style={styles.videoTouchOverlay} />
-                        </TouchableWithoutFeedback>
-                        <PlayButton />
-                        <ProgressBar />
-                        <TimerDisplay />
-                        <BackButton />
-                        <AirplayButton />
-                        <MuteButton />
-                        <FullscreenButton />
-                    </View>
-                ) : (
-                    <View style={styles.placeholderContainer}>
-                        <Text style={styles.placeholderText}>
-                            Video not available for ID: {videoId}
-                        </Text>
-                    </View>
-                )}
-
-                <View
-                    style={[
-                        styles.detailsContainer,
-                        isFullscreen && styles.fullscreenDetailsContainer,
-                    ]}
-                >
-                    <Text numberOfLines={1} style={styles.title}>
-                        {shouldShowRealData
-                            ? videoDetails.snippet.title
-                            : "Placeholder Video Name"}
-                    </Text>
-                    <View style={styles.channelDetailsContainer}>
-                        <View style={styles.accountIconContainer}>
-                            <PersonIcon
-                                width={wp(24)}
-                                height={hp(24)}
-                                fill="white"
-                            />
-                        </View>
-                        <Text style={styles.channelName}>
-                            {shouldShowRealData
-                                ? videoDetails.snippet.channelTitle
-                                : "ITV Drama"}
-                        </Text>
-                    </View>
-
-                    <View style={styles.tabBar}>
-                        <TouchableOpacity
-                            style={[
-                                styles.tabButton,
-                                activeTab === "details" &&
-                                    styles.activeTabButton,
-                            ]}
-                            onPress={() => setActiveTab("details")}
-                        >
-                            <Text style={[styles.tabText]}>Details</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.tabButton,
-                                activeTab === "notes" && styles.activeTabButton,
-                            ]}
-                            onPress={() => setActiveTab("notes")}
-                        >
-                            <Text style={[styles.tabText]}>Notes</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.tabContent}>
-                        {activeTab === "details" ? (
-                            <DetailsTab />
-                        ) : (
-                            <NotesTab />
-                        )}
-                    </View>
-                </View>
-            </GestureHandlerRootView>
-        </TouchableWithoutFeedback>
-    );
-
     return (
         <Animated.View
             style={[
@@ -674,7 +552,127 @@ export default function VideoDetailsScreen() {
                 animatedStyle,
             ]}
         >
-            <Content />
+            <TouchableWithoutFeedback onPress={dismissKeyboard}>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                    <Stack.Screen
+                        options={{
+                            headerShown: false,
+                        }}
+                    />
+                    <StatusBar style="light" />
+
+                    {videoSource ? (
+                        <View
+                            style={[
+                                styles.videoContainer,
+                                isFullscreen && styles.fullscreenVideoContainer,
+                            ]}
+                        >
+                            <Video
+                                ref={videoRef}
+                                source={videoSource}
+                                style={styles.video}
+                                controls={false}
+                                resizeMode="contain"
+                                paused={!isPlaying}
+                                muted={isMuted}
+                                progressUpdateInterval={500}
+                                {...(Platform.OS === "android"
+                                    ? {
+                                          useTextureView: false,
+                                      }
+                                    : {})}
+                                onError={handleVideoError}
+                                onLoad={(data) => {
+                                    console.log("Video Loaded:", data);
+                                    setIsFinished(false);
+                                    setDuration(data.duration);
+                                    setCurrentTime(0);
+                                }}
+                                onEnd={handleVideoEnd}
+                                onProgress={handleVideoProgress}
+                            />
+
+                            <TouchableWithoutFeedback
+                                onPress={showControlsAndStartTimer}
+                            >
+                                <View style={styles.videoTouchOverlay} />
+                            </TouchableWithoutFeedback>
+                            <PlayButton />
+                            <ProgressBar />
+                            <TimerDisplay />
+                            <BackButton />
+                            <AirplayButton />
+                            <MuteButton />
+                            <FullscreenButton />
+                        </View>
+                    ) : (
+                        <View style={styles.placeholderContainer}>
+                            <Text style={styles.placeholderText}>
+                                Video not available for ID: {videoId}
+                            </Text>
+                        </View>
+                    )}
+
+                    <View
+                        style={[
+                            styles.detailsContainer,
+                            isFullscreen && styles.fullscreenDetailsContainer,
+                        ]}
+                    >
+                        <Text numberOfLines={1} style={styles.title}>
+                            {shouldShowRealData
+                                ? videoDetails.snippet.title
+                                : "Placeholder Video Name"}
+                        </Text>
+                        <View style={styles.channelDetailsContainer}>
+                            <View style={styles.accountIconContainer}>
+                                <PersonIcon
+                                    width={wp(24)}
+                                    height={hp(24)}
+                                    fill="white"
+                                />
+                            </View>
+                            <Text style={styles.channelName}>
+                                {shouldShowRealData
+                                    ? videoDetails.snippet.channelTitle
+                                    : "ITV Drama"}
+                            </Text>
+                        </View>
+
+                        <View style={styles.tabBar}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.tabButton,
+                                    activeTab === "details" &&
+                                        styles.activeTabButton,
+                                ]}
+                                onPress={() => setActiveTab("details")}
+                            >
+                                <Text style={[styles.tabText]}>Details</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.tabButton,
+                                    activeTab === "notes" &&
+                                        styles.activeTabButton,
+                                ]}
+                                onPress={() => setActiveTab("notes")}
+                            >
+                                <Text style={[styles.tabText]}>Notes</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.tabContent}>
+                            {activeTab === "details" ? (
+                                <DetailsTab />
+                            ) : (
+                                <NotesTab />
+                            )}
+                        </View>
+                    </View>
+                </GestureHandlerRootView>
+            </TouchableWithoutFeedback>
         </Animated.View>
     );
 }
