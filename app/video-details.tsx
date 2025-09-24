@@ -19,6 +19,7 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    Alert,
     Dimensions,
     Keyboard,
     Platform,
@@ -32,6 +33,11 @@ import {
     GestureHandlerRootView,
     ScrollView,
 } from "react-native-gesture-handler";
+import {
+    CastButton,
+    useCastState,
+    useRemoteMediaClient,
+} from "react-native-google-cast";
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -62,6 +68,9 @@ export default function VideoDetailsScreen() {
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
     const keyboardHeight = useSharedValue(0);
     const lastProgressUpdateRef = useRef(0);
+
+    const castState = useCastState();
+    const remoteMediaClient = useRemoteMediaClient();
 
     const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
 
@@ -510,24 +519,45 @@ export default function VideoDetailsScreen() {
         </Animated.View>
     );
 
-    const AirplayButton = () => (
-        <Animated.View
-            style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
-            pointerEvents={showControls ? "auto" : "none"}
-        >
-            <TouchableOpacity
-                style={styles.airplayButton}
-                onPress={() => {
-                    console.log("Airplay pressed");
-                    showControlsAndStartTimer();
-                }}
-                activeOpacity={0.6}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    const CastButtonComponent = () => {
+        const handleCast = () => {
+            if (Platform.OS === "ios") {
+                // For iOS, show AirPlay instructions since Google Cast might not work properly
+                Alert.alert(
+                    "AirPlay",
+                    "To cast this video on iOS:\n\n1. Swipe down from top-right corner\n2. Tap the AirPlay button in Control Center\n3. Select your Apple TV or AirPlay device\n\nMake sure your device and TV are on the same Wi-Fi network.",
+                    [{ text: "Got it!" }]
+                );
+            }
+            showControlsAndStartTimer();
+        };
+
+        return (
+            <Animated.View
+                style={[styles.airplayButtonContainer, controlsAnimatedStyle]}
+                pointerEvents={showControls ? "auto" : "none"}
             >
-                <AirplayIcon width={wp(20)} height={hp(20)} stroke="white" />
-            </TouchableOpacity>
-        </Animated.View>
-    );
+                {Platform.OS === "ios" ? (
+                    <TouchableOpacity
+                        style={styles.airplayButton}
+                        onPress={handleCast}
+                        activeOpacity={0.6}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <AirplayIcon
+                            width={wp(20)}
+                            height={hp(20)}
+                            stroke="white"
+                        />
+                    </TouchableOpacity>
+                ) : (
+                    <View style={styles.airplayButton}>
+                        <CastButton style={styles.castButtonIcon} />
+                    </View>
+                )}
+            </Animated.View>
+        );
+    };
 
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
@@ -573,6 +603,7 @@ export default function VideoDetailsScreen() {
                                 paused={!isPlaying}
                                 muted={isMuted}
                                 progressUpdateInterval={500}
+                                allowsExternalPlayback={true}
                                 {...(Platform.OS === "android"
                                     ? {
                                           useTextureView: false,
@@ -598,7 +629,7 @@ export default function VideoDetailsScreen() {
                             <ProgressBar />
                             <TimerDisplay />
                             <BackButton />
-                            <AirplayButton />
+                            <CastButtonComponent />
                             <MuteButton />
                             <FullscreenButton />
                         </View>
@@ -1061,5 +1092,10 @@ const styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: "transparent",
         zIndex: 1,
+    },
+    castButtonIcon: {
+        width: wp(12),
+        height: hp(12),
+        tintColor: "white",
     },
 });
