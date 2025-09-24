@@ -36,17 +36,26 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Video, { VideoRef } from "react-native-video";
 
 export default function VideoDetailsScreen() {
+    // ===== ROUTER & PARAMS =====
     const { videoId } = useLocalSearchParams<{ videoId: string }>();
     const router = useRouter();
 
+    // ===== API HOOKS =====
     const {
         data: videoDetails,
         isLoading,
         error,
     } = useYouTubeVideoDetails(videoId || "");
+
+    // ===== REFS =====
     const videoRef = useRef<VideoRef>(null);
     const insets = useSafeAreaInsets();
+    const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
+    const lastProgressUpdateRef = useRef(0);
 
+    // ===== STATE =====
     const [isPlaying, setIsPlaying] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -55,11 +64,28 @@ export default function VideoDetailsScreen() {
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeTab, setActiveTab] = useState<"details" | "notes">("details");
+
+    // ===== ANIMATED VALUES =====
     const keyboardHeight = useSharedValue(0);
-    const lastProgressUpdateRef = useRef(0);
+    const controlsOpacity = useSharedValue(1);
 
+    // ===== CONSTANTS =====
     const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
+    const shouldShowRealData =
+        videoId !== "placeholder-local-tab" && !error && !!videoDetails;
 
+    // ===== ANIMATED STYLES =====
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: -keyboardHeight.value }],
+        };
+    });
+
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
+
+    // ===== USEEFFECTS =====
     useEffect(() => {
         const showEvent =
             Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -84,20 +110,19 @@ export default function VideoDetailsScreen() {
         };
     }, [keyboardHeight]);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ translateY: -keyboardHeight.value }],
+    useEffect(() => {
+        return () => {
+            if (hideControlsTimeoutRef.current) {
+                clearTimeout(hideControlsTimeoutRef.current);
+            }
+            ScreenOrientation.unlockAsync();
         };
-    });
+    }, []);
 
+    // ===== CALLBACKS =====
     const dismissKeyboard = useCallback(() => {
         Keyboard.dismiss();
     }, []);
-
-    const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-        null
-    );
-    const controlsOpacity = useSharedValue(1);
 
     const startHideTimer = useCallback(() => {
         if (hideControlsTimeoutRef.current) {
@@ -117,24 +142,27 @@ export default function VideoDetailsScreen() {
         startHideTimer();
     }, [controlsOpacity, startHideTimer]);
 
-    useEffect(() => {
-        return () => {
-            if (hideControlsTimeoutRef.current) {
-                clearTimeout(hideControlsTimeoutRef.current);
-            }
-            ScreenOrientation.unlockAsync();
-        };
-    }, []);
-
+    // ===== UTILITY FUNCTIONS =====
     const getProgressBarWidth = () => {
         const { width, height } = Dimensions.get("window");
         // In fullscreen (landscape), use the larger dimension
         return isFullscreen ? Math.max(width, height) : width;
     };
 
-    const shouldShowRealData =
-        videoId !== "placeholder-local-tab" && !error && !!videoDetails;
+    const getProgress = () => {
+        return duration > 0 ? currentTime / duration : 0;
+    };
 
+    const getThumbPosition = () => {
+        return getProgress() * getProgressBarWidth();
+    };
+
+    const seekTo = (time: number) => {
+        videoRef.current?.seek(time);
+        setCurrentTime(time);
+    };
+
+    // ===== EVENT HANDLERS =====
     const handleBeginInputFocus = () => {
         if (isPlaying) {
             setIsPlaying(false);
@@ -175,15 +203,6 @@ export default function VideoDetailsScreen() {
         }
     };
 
-    const controlsAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: controlsOpacity.value,
-    }));
-
-    const seekTo = (time: number) => {
-        videoRef.current?.seek(time);
-        setCurrentTime(time);
-    };
-
     const seekBackward = () => {
         const newTime = Math.max(0, currentTime - 5);
         seekTo(newTime);
@@ -194,14 +213,6 @@ export default function VideoDetailsScreen() {
         const newTime = Math.min(duration, currentTime + 5);
         seekTo(newTime);
         showControlsAndStartTimer();
-    };
-
-    const getProgress = () => {
-        return duration > 0 ? currentTime / duration : 0;
-    };
-
-    const getThumbPosition = () => {
-        return getProgress() * getProgressBarWidth();
     };
 
     const handleProgressBarPress = (event: any) => {
