@@ -240,8 +240,11 @@ export default function VideoDetailsScreen() {
         };
     }, []);
 
-    const screenWidth = Dimensions.get("window").width;
-    const progressBarWidth = screenWidth; // Full screen width
+    const getProgressBarWidth = () => {
+        const { width, height } = Dimensions.get("window");
+        // In fullscreen (landscape), use the larger dimension
+        return isFullscreen ? Math.max(width, height) : width;
+    };
 
     const videoSource = require("@/assets/videos/broadchurch.mp4");
 
@@ -315,7 +318,7 @@ export default function VideoDetailsScreen() {
     };
 
     const getThumbPosition = () => {
-        return getProgress() * progressBarWidth;
+        return getProgress() * getProgressBarWidth();
     };
 
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
@@ -535,7 +538,10 @@ export default function VideoDetailsScreen() {
 
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
-        const progress = Math.max(0, Math.min(locationX / progressBarWidth, 1));
+        const progress = Math.max(
+            0,
+            Math.min(locationX / getProgressBarWidth(), 1)
+        );
         const newTime = progress * duration;
         seekTo(newTime);
         showControlsAndStartTimer();
