@@ -64,7 +64,6 @@ export default function VideoDetailsScreen() {
     const keyboardHeight = useSharedValue(0);
     const lastProgressUpdateRef = useRef(0);
 
-
     const videoSource = { uri: require("@/assets/videos/broadchurch.mp4") };
 
     useEffect(() => {
