@@ -133,7 +133,7 @@ export default function VideoDetailsScreen() {
     };
 
     const shouldShowRealData =
-        videoId !== "placeholder-local-tab" && !error && videoDetails;
+        videoId !== "placeholder-local-tab" && !error && !!videoDetails;
 
     const handleBeginInputFocus = () => {
         if (isPlaying) {
@@ -175,11 +175,9 @@ export default function VideoDetailsScreen() {
         }
     };
 
-    useEffect(() => {
-        if (isPlaying && showControls) {
-            startHideTimer();
-        }
-    }, [isPlaying, showControls, startHideTimer]);
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
 
     const seekTo = (time: number) => {
         videoRef.current?.seek(time);
@@ -205,10 +203,6 @@ export default function VideoDetailsScreen() {
     const getThumbPosition = () => {
         return getProgress() * getProgressBarWidth();
     };
-
-    const controlsAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: controlsOpacity.value,
-    }));
 
     const handleProgressBarPress = (event: any) => {
         const { locationX } = event.nativeEvent;
@@ -478,38 +472,6 @@ const styles = StyleSheet.create({
         paddingTop: hp(15),
         width: "100%",
     },
-    descriptionContainer: {
-        flex: 1,
-    },
-    descriptionText: {
-        fontSize: fp(12),
-        fontFamily: fonts.poppins,
-        color: colors.gray.dark,
-        lineHeight: hp(12),
-        fontWeight: "400",
-        letterSpacing: wp(0.5),
-        paddingBottom: spacing.xs,
-    },
-    descriptionTitle: {
-        fontFamily: fonts.poppinsSemiBold,
-        fontSize: fp(10),
-        lineHeight: hp(12),
-        color: colors.primary,
-        fontWeight: "600",
-        letterSpacing: wp(0.5),
-        paddingVertical: spacing.xs,
-    },
-    notesContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    notesText: {
-        fontSize: fp(14),
-        fontFamily: fonts.poppins,
-        color: colors.gray.medium,
-        textAlign: "center",
-    },
     container: {
         flex: 1,
         backgroundColor: colors.black,
@@ -535,233 +497,6 @@ const styles = StyleSheet.create({
     video: {
         width: "100%",
         height: "100%",
-    },
-    controlsOverlay: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.1)",
-        zIndex: 10,
-    },
-    controlsRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: wp(30),
-    },
-    playButton: {
-        width: wp(50),
-        height: hp(50),
-        borderRadius: wp(25),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    seekButton: {
-        width: wp(36),
-        height: hp(36),
-        borderRadius: wp(18),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    progressBarContainer: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: hp(4),
-        justifyContent: "center",
-        overflow: "visible",
-        zIndex: 10,
-    },
-    progressBarBackground: {
-        height: hp(4),
-        backgroundColor: colors.overlay.light,
-        position: "relative",
-        overflow: "visible",
-    },
-    progressBarFill: {
-        height: hp(4),
-        backgroundColor: colors.alert,
-        position: "absolute",
-        left: 0,
-        top: 0,
-    },
-    progressBarThumb: {
-        position: "absolute",
-        top: hp(-4),
-        width: wp(12),
-        height: hp(12),
-        borderRadius: wp(6),
-        backgroundColor: colors.alert,
-        zIndex: 9999,
-    },
-    statisticsContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingTop: spacing.xs,
-        paddingVertical: 2 * spacing.xxxl,
-    },
-    statisticsItem: {
-        backgroundColor: colors.primary,
-        width: wp(136),
-        height: hp(32),
-        borderRadius: fp(8),
-        justifyContent: "flex-start",
-        alignItems: "center",
-        color: colors.white,
-        flexDirection: "row",
-        paddingHorizontal: wp(10),
-    },
-    statisticsText: {
-        color: colors.white,
-        width: "100%",
-        flex: 1,
-        textAlign: "center",
-        fontFamily: fonts.poppins,
-        fontWeight: "600",
-        fontSize: fp(10),
-        letterSpacing: wp(0.5),
-    },
-    timerContainer: {
-        position: "absolute",
-        bottom: hp(8),
-        left: wp(12),
-        backgroundColor: colors.overlay.timer,
-        paddingHorizontal: wp(8),
-        paddingVertical: hp(4),
-        borderRadius: wp(4),
-        zIndex: 10,
-    },
-    timerText: {
-        color: colors.white,
-        fontSize: fp(10),
-        fontWeight: "500",
-        fontFamily: fonts.poppinsMedium,
-        letterSpacing: wp(0.5),
-    },
-    backButtonContainer: {
-        position: "absolute",
-        top: hp(12),
-        left: wp(12),
-        zIndex: 10,
-    },
-    backButton: {
-        width: wp(40),
-        height: hp(40),
-        borderRadius: wp(20),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    fullscreenButtonContainer: {
-        position: "absolute",
-        bottom: hp(6),
-        right: wp(6),
-        zIndex: 10,
-    },
-    fullscreenButton: {
-        width: wp(48),
-        height: hp(48),
-        borderRadius: wp(24),
-        backgroundColor: "transparent",
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    muteButtonContainer: {
-        position: "absolute",
-        top: hp(12),
-        right: wp(60),
-        zIndex: 10,
-    },
-    muteButton: {
-        width: wp(40),
-        height: hp(40),
-        borderRadius: wp(20),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    airplayButtonContainer: {
-        position: "absolute",
-        top: hp(12),
-        right: wp(12),
-        zIndex: 10,
-    },
-    airplayButton: {
-        width: wp(40),
-        height: hp(40),
-        borderRadius: wp(20),
-        backgroundColor: colors.overlay.dark,
-        justifyContent: "center",
-        alignItems: "center",
-        shadowColor: colors.black,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    unmuteIconContainer: {
-        position: "relative",
-        width: wp(16),
-        height: hp(16),
-    },
-    unmuteCrossLine: {
-        position: "absolute",
-        top: hp(7),
-        left: wp(-2),
-        width: wp(20),
-        height: hp(2),
-        backgroundColor: colors.white,
-        transform: [{ rotate: "45deg" }],
     },
     placeholderContainer: {
         width: "100%",
@@ -794,17 +529,6 @@ const styles = StyleSheet.create({
         color: colors.gray.dark,
         letterSpacing: wp(0.5),
     },
-    subtitle: {
-        fontSize: fp(16),
-        marginBottom: hp(20),
-        color: colors.gray.medium,
-    },
-    placeholder: {
-        fontSize: fp(14),
-        textAlign: "center",
-        color: colors.gray.placeholder,
-        lineHeight: hp(20),
-    },
     videoTouchOverlay: {
         position: "absolute",
         top: 0,
@@ -813,13 +537,5 @@ const styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: "transparent",
         zIndex: 1,
-    },
-    invisibleCastButton: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: wp(40),
-        height: hp(40),
-        opacity: 0,
     },
 });
