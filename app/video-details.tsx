@@ -552,7 +552,12 @@ export default function VideoDetailsScreen() {
                     </TouchableOpacity>
                 ) : (
                     <View style={styles.airplayButton}>
-                        <CastButton style={styles.castButtonIcon} />
+                        <AirplayIcon
+                            width={wp(20)}
+                            height={hp(20)}
+                            stroke="white"
+                        />
+                        <CastButton style={styles.invisibleCastButton} />
                     </View>
                 )}
             </Animated.View>
@@ -1093,9 +1098,12 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         zIndex: 1,
     },
-    castButtonIcon: {
-        width: wp(12),
-        height: hp(12),
-        tintColor: "white",
+    invisibleCastButton: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: wp(40),
+        height: hp(40),
+        opacity: 0,
     },
 });
