@@ -492,6 +492,7 @@ const styles = StyleSheet.create({
         fontFamily: fonts.poppinsSemiBold,
         color: colors.primary,
         fontWeight: "600",
+        ...(!isIOS ? { fontWeight: "700" } : {}),
     },
 
     tabContent: {
@@ -555,6 +556,7 @@ const styles = StyleSheet.create({
         marginBottom: hp(10),
         color: colors.gray.dark,
         letterSpacing: wp(0.5),
+        ...(!isIOS ? { fontWeight: "700" } : {}),
     },
     videoTouchOverlay: {
         position: "absolute",

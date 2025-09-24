@@ -2,6 +2,7 @@ import LikesIcon from "@/assets/images/svg/likes.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
+import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -129,6 +130,7 @@ const styles = StyleSheet.create({
         fontWeight: "400",
         letterSpacing: wp(0.5),
         paddingBottom: spacing.xs,
+        ...(!isIOS ? { fontWeight: "500" } : {}),
     },
     descriptionTitle: {
         fontFamily: fonts.poppinsSemiBold,
@@ -138,6 +140,7 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         letterSpacing: wp(0.5),
         paddingVertical: spacing.xs,
+        ...(!isIOS ? { fontWeight: "700" } : {}),
     },
     statisticsContainer: {
         flexDirection: "row",
@@ -165,5 +168,6 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         fontSize: fp(10),
         letterSpacing: wp(0.5),
+        ...(!isIOS ? { fontWeight: "700" } : {}),
     },
 });
