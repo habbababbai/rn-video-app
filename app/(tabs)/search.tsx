@@ -18,6 +18,7 @@ import {
     FlatList,
     Image,
     Keyboard,
+    Platform,
     RefreshControl,
     StyleSheet,
     Text,
@@ -370,6 +371,12 @@ const styles = StyleSheet.create({
         letterSpacing: wp(0.5),
         lineHeight: hp(20),
         textAlignVertical: "center",
+        includeFontPadding: false,
+        textAlign: "left",
+        ...(Platform.OS === "android" && {
+            paddingTop: hp(2),
+            paddingBottom: hp(2),
+        }),
     },
     listContainer: {
         paddingHorizontal: wp(20),

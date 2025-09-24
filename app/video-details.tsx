@@ -303,7 +303,6 @@ export default function VideoDetailsScreen() {
                                         await new Promise((resolve) =>
                                             setTimeout(resolve, 200)
                                         );
-                                        
                                     }
                                     router.back();
                                 }}
