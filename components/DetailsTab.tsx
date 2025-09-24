@@ -10,12 +10,16 @@ interface DetailsTabProps {
     videoDetails: any;
     shouldShowRealData: boolean;
     videoId: string;
+    isLoading: boolean;
+    error: Error | null;
 }
 
 export const DetailsTab: React.FC<DetailsTabProps> = ({
     videoDetails,
     shouldShowRealData,
     videoId,
+    isLoading,
+    error,
 }) => {
     const formatNumber = (num: string) => {
         const number = parseInt(num);
@@ -26,6 +30,26 @@ export const DetailsTab: React.FC<DetailsTabProps> = ({
         }
         return number.toString();
     };
+
+    if (isLoading) {
+        return (
+            <View style={styles.descriptionContainer}>
+                <Text style={styles.descriptionText}>
+                    Loading video details...
+                </Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={styles.descriptionContainer}>
+                <Text style={styles.descriptionText}>
+                    Error loading video details: {error.message}
+                </Text>
+            </View>
+        );
+    }
 
     if (!shouldShowRealData) {
         return (
