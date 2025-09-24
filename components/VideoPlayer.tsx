@@ -4,7 +4,6 @@ import { PlayButton } from "@/components/PlayButton";
 import { ProgressBar } from "@/components/ProgressBar";
 import { TimerDisplay } from "@/components/TimerDisplay";
 import { colors } from "@/constants/colors";
-import { isIOS } from "@/utils/platform";
 import { hp } from "@/utils/responsive";
 import * as ScreenOrientation from "expo-screen-orientation";
 import React, {
@@ -199,7 +198,8 @@ const VideoPlayerComponent = (
     };
 
     const handleBackPress = async () => {
-        if (isFullscreen) {// Force portrait orientation before unlocking for both platforms
+        if (isFullscreen) {
+            // Force portrait orientation before unlocking for both platforms
             await ScreenOrientation.lockAsync(
                 ScreenOrientation.OrientationLock.PORTRAIT_UP
             );
@@ -270,6 +270,7 @@ const VideoPlayerComponent = (
                 controlsAnimatedStyle={controlsAnimatedStyle}
                 thumbPosition={getThumbPosition()}
                 onProgressBarPress={handleProgressBarPress}
+                isFullscreen={isFullscreen}
             />
 
             <TimerDisplay
@@ -277,6 +278,7 @@ const VideoPlayerComponent = (
                 duration={duration}
                 showControls={showControls}
                 controlsAnimatedStyle={controlsAnimatedStyle}
+                isFullscreen={isFullscreen}
             />
 
             <ControlButton

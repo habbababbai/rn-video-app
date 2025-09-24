@@ -10,6 +10,7 @@ interface TimerDisplayProps {
     duration: number;
     showControls: boolean;
     controlsAnimatedStyle: any;
+    isFullscreen?: boolean;
 }
 
 export const TimerDisplay: React.FC<TimerDisplayProps> = ({
@@ -17,6 +18,7 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
     duration,
     showControls,
     controlsAnimatedStyle,
+    isFullscreen = false,
 }) => {
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -26,7 +28,11 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
 
     return (
         <Animated.View
-            style={[styles.timerContainer, controlsAnimatedStyle]}
+            style={[
+                styles.timerContainer,
+                isFullscreen && styles.fullscreenTimerContainer,
+                controlsAnimatedStyle,
+            ]}
             pointerEvents={showControls ? "auto" : "none"}
         >
             <Text style={styles.timerText}>
@@ -46,6 +52,9 @@ const styles = StyleSheet.create({
         paddingVertical: hp(4),
         borderRadius: wp(4),
         zIndex: 2,
+    },
+    fullscreenTimerContainer: {
+        bottom: hp(28), // Add bottom padding in fullscreen mode (8 + 20)
     },
     timerText: {
         color: colors.white,
