@@ -7,7 +7,7 @@ import { colors } from "@/constants/colors";
 import { isIOS } from "@/utils/platform";
 import { hp } from "@/utils/responsive";
 import * as ScreenOrientation from "expo-screen-orientation";
-import {
+import React, {
     forwardRef,
     useCallback,
     useEffect,
@@ -17,6 +17,7 @@ import {
 } from "react";
 import {
     Dimensions,
+    Keyboard,
     StyleSheet,
     TouchableWithoutFeedback,
     View,
@@ -40,286 +41,281 @@ export interface VideoPlayerRef {
     handleBeginInputFocus: () => void;
 }
 
-export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
-    (
-        {
-            videoSource,
-            isFullscreen,
-            onFullscreenChange,
-            onBack,
-            onCurrentTimeChange,
-        },
-        ref
-    ) => {
-        const videoRef = useRef<VideoRef>(null);
-        const hideControlsTimeoutRef = useRef<ReturnType<
-            typeof setTimeout
-        > | null>(null);
-        const lastProgressUpdateRef = useRef(0);
+const VideoPlayerComponent = (
+    {
+        videoSource,
+        isFullscreen,
+        onFullscreenChange,
+        onBack,
+        onCurrentTimeChange,
+    }: VideoPlayerProps,
+    ref: React.Ref<VideoPlayerRef>
+) => {
+    const videoRef = useRef<VideoRef>(null);
+    const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
+    const lastProgressUpdateRef = useRef(0);
 
-        const [isPlaying, setIsPlaying] = useState(false);
-        const [isFinished, setIsFinished] = useState(false);
-        const [currentTime, setCurrentTime] = useState(0);
-        const [duration, setDuration] = useState(0);
-        const [showControls, setShowControls] = useState(true);
-        const [isMuted, setIsMuted] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isFinished, setIsFinished] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [showControls, setShowControls] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
 
-        const controlsOpacity = useSharedValue(1);
+    const controlsOpacity = useSharedValue(1);
 
-        useEffect(() => {
-            return () => {
-                if (hideControlsTimeoutRef.current) {
-                    clearTimeout(hideControlsTimeoutRef.current);
-                }
-                ScreenOrientation.unlockAsync();
-            };
-        }, []);
+    useEffect(() => {
+        setIsMuted(false);
 
-        const startHideTimer = useCallback(() => {
+        return () => {
             if (hideControlsTimeoutRef.current) {
                 clearTimeout(hideControlsTimeoutRef.current);
             }
-            hideControlsTimeoutRef.current = setTimeout(() => {
-                if (isPlaying) {
-                    controlsOpacity.value = withTiming(0, { duration: 300 });
-                    setShowControls(false);
-                }
-            }, 3000);
-        }, [isPlaying, controlsOpacity]);
-
-        const showControlsAndStartTimer = useCallback(() => {
-            controlsOpacity.value = withTiming(1, { duration: 300 });
-            setShowControls(true);
-            startHideTimer();
-        }, [controlsOpacity, startHideTimer]);
-
-        const getProgressBarWidth = () => {
-            const { width, height } = Dimensions.get("window");
-            // In fullscreen (landscape), use the larger dimension
-            return isFullscreen ? Math.max(width, height) : width;
+            ScreenOrientation.unlockAsync();
         };
+    }, []);
 
-        const getProgress = () => {
-            return duration > 0 ? currentTime / duration : 0;
-        };
-
-        const getThumbPosition = () => {
-            return getProgress() * getProgressBarWidth();
-        };
-
-        const seekTo = (time: number) => {
-            videoRef.current?.seek(time);
-            setCurrentTime(time);
-        };
-
-        const handlePlayPause = () => {
-            if (isFinished) {
-                videoRef.current?.seek(0);
-                setIsFinished(false);
-                setIsPlaying(true);
-            } else {
-                setIsPlaying(!isPlaying);
-            }
-            showControlsAndStartTimer();
-        };
-
-        const handleVideoEnd = () => {
-            setIsPlaying(false);
-            setIsFinished(true);
-            setCurrentTime(duration);
-            console.log("Video finished");
-        };
-
-        const handleVideoError = (error: any) => {
-            console.log("Video Error:", error);
-        };
-
-        const handleVideoProgress = (data: any) => {
-            const current = data.currentTime as number;
-            if (
-                current - lastProgressUpdateRef.current >= 0.25 ||
-                current < lastProgressUpdateRef.current
-            ) {
-                lastProgressUpdateRef.current = current;
-                setCurrentTime(current);
-                onCurrentTimeChange(current);
-            }
-        };
-
-        const seekBackward = () => {
-            const newTime = Math.max(0, currentTime - 5);
-            seekTo(newTime);
-            showControlsAndStartTimer();
-        };
-
-        const seekForward = () => {
-            const newTime = Math.min(duration, currentTime + 5);
-            seekTo(newTime);
-            showControlsAndStartTimer();
-        };
-
-        const handleProgressBarPress = (event: any) => {
-            const { locationX } = event.nativeEvent;
-            const progress = Math.max(
-                0,
-                Math.min(locationX / getProgressBarWidth(), 1)
-            );
-            const newTime = progress * duration;
-            seekTo(newTime);
-            showControlsAndStartTimer();
-        };
-
-        const handleFullscreenToggle = async () => {
-            const newFullscreenState = !isFullscreen;
-            onFullscreenChange(newFullscreenState);
-
-            if (newFullscreenState) {
-                await ScreenOrientation.lockAsync(
-                    ScreenOrientation.OrientationLock.LANDSCAPE
-                );
-            } else {
-                if (isIOS) {
-                    // iOS-specific approach: unlock first, then force portrait
-                    await ScreenOrientation.unlockAsync();
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                    await ScreenOrientation.lockAsync(
-                        ScreenOrientation.OrientationLock.PORTRAIT_UP
-                    );
-                    await new Promise((resolve) => setTimeout(resolve, 200));
-                    await ScreenOrientation.unlockAsync();
-                } else {
-                    // Android approach: force portrait before unlocking
-                    await ScreenOrientation.lockAsync(
-                        ScreenOrientation.OrientationLock.PORTRAIT_UP
-                    );
-                    await new Promise((resolve) => setTimeout(resolve, 200));
-                    await ScreenOrientation.unlockAsync();
-                }
-            }
-
-            showControlsAndStartTimer();
-        };
-
-        const handleBackPress = async () => {
-            if (isFullscreen) {
-                // Force portrait orientation before unlocking for both platforms
-                await ScreenOrientation.lockAsync(
-                    ScreenOrientation.OrientationLock.PORTRAIT_UP
-                );
-                await new Promise((resolve) => setTimeout(resolve, 200));
-            }
-            onBack();
-        };
-
-        const handleBeginInputFocus = () => {
+    const startHideTimer = useCallback(() => {
+        if (hideControlsTimeoutRef.current) {
+            clearTimeout(hideControlsTimeoutRef.current);
+        }
+        hideControlsTimeoutRef.current = setTimeout(() => {
             if (isPlaying) {
-                setIsPlaying(false);
+                controlsOpacity.value = withTiming(0, { duration: 300 });
+                setShowControls(false);
             }
-            showControlsAndStartTimer();
-        };
+        }, 3000);
+    }, [isPlaying, controlsOpacity]);
 
-        useImperativeHandle(ref, () => ({
-            handleBeginInputFocus,
-        }));
+    const showControlsAndStartTimer = useCallback(() => {
+        controlsOpacity.value = withTiming(1, { duration: 300 });
+        setShowControls(true);
+        startHideTimer();
+    }, [controlsOpacity, startHideTimer]);
 
-        const controlsAnimatedStyle = useAnimatedStyle(() => ({
-            opacity: controlsOpacity.value,
-        }));
+    const getProgressBarWidth = () => {
+        const { width, height } = Dimensions.get("window");
+        return isFullscreen ? Math.max(width, height) : width;
+    };
 
-        return (
-            <View
-                style={[
-                    styles.videoContainer,
-                    isFullscreen && styles.fullscreenVideoContainer,
-                ]}
-            >
-                <Video
-                    ref={videoRef}
-                    source={videoSource}
-                    style={styles.video}
-                    controls={false}
-                    resizeMode="contain"
-                    paused={!isPlaying}
-                    muted={isMuted}
-                    progressUpdateInterval={500}
-                    allowsExternalPlayback={true}
-                    {...(!isIOS
-                        ? {
-                              useTextureView: false,
-                          }
-                        : {})}
-                    onError={handleVideoError}
-                    onLoad={(data) => {
-                        console.log("Video Loaded:", data);
-                        setIsFinished(false);
-                        setDuration(data.duration);
-                        setCurrentTime(0);
-                    }}
-                    onEnd={handleVideoEnd}
-                    onProgress={handleVideoProgress}
-                />
+    const getProgress = () => {
+        return duration > 0 ? currentTime / duration : 0;
+    };
 
-                <TouchableWithoutFeedback onPress={showControlsAndStartTimer}>
-                    <View style={styles.videoTouchOverlay} />
-                </TouchableWithoutFeedback>
+    const getThumbPosition = () => {
+        return getProgress() * getProgressBarWidth();
+    };
 
-                <PlayButton
-                    isPlaying={isPlaying}
-                    isFinished={isFinished}
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                    onPlayPause={handlePlayPause}
-                    onSeekBackward={seekBackward}
-                    onSeekForward={seekForward}
-                />
+    const seekTo = (time: number) => {
+        videoRef.current?.seek(time);
+        setCurrentTime(time);
+    };
 
-                <ProgressBar
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                    thumbPosition={getThumbPosition()}
-                    onProgressBarPress={handleProgressBarPress}
-                />
+    const handlePlayPause = () => {
+        if (isFinished) {
+            videoRef.current?.seek(0);
+            setIsFinished(false);
+            setIsPlaying(true);
+        } else {
+            setIsPlaying(!isPlaying);
+        }
+        showControlsAndStartTimer();
+    };
 
-                <TimerDisplay
-                    currentTime={currentTime}
-                    duration={duration}
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                />
+    const handleVideoEnd = () => {
+        setIsPlaying(false);
+        setIsFinished(true);
+        setCurrentTime(duration);
+        console.log("Video finished");
+    };
 
-                <ControlButton
-                    type="back"
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                    onPress={handleBackPress}
-                />
+    const handleVideoError = (error: any) => {
+        console.log("Video Error:", error);
+        setIsMuted(false);
+    };
 
-                <CastButton
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                    onShowControls={showControlsAndStartTimer}
-                />
+    const handleVideoProgress = (data: any) => {
+        const current = data.currentTime as number;
+        if (
+            current - lastProgressUpdateRef.current >= 0.25 ||
+            current < lastProgressUpdateRef.current
+        ) {
+            lastProgressUpdateRef.current = current;
+            setCurrentTime(current);
+            onCurrentTimeChange(current);
+        }
+    };
 
-                <ControlButton
-                    type="mute"
-                    isMuted={isMuted}
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                    onPress={() => {
-                        setIsMuted(!isMuted);
-                        showControlsAndStartTimer();
-                    }}
-                />
+    const seekBackward = () => {
+        const newTime = Math.max(0, currentTime - 5);
+        seekTo(newTime);
+        showControlsAndStartTimer();
+    };
 
-                <ControlButton
-                    type="fullscreen"
-                    showControls={showControls}
-                    controlsAnimatedStyle={controlsAnimatedStyle}
-                    onPress={handleFullscreenToggle}
-                />
-            </View>
+    const seekForward = () => {
+        const newTime = Math.min(duration, currentTime + 5);
+        seekTo(newTime);
+        showControlsAndStartTimer();
+    };
+
+    const handleProgressBarPress = (event: any) => {
+        const { locationX } = event.nativeEvent;
+        const progress = Math.max(
+            0,
+            Math.min(locationX / getProgressBarWidth(), 1)
         );
-    }
+        const newTime = progress * duration;
+        seekTo(newTime);
+        showControlsAndStartTimer();
+    };
+
+    const handleFullscreenToggle = async () => {
+        const newFullscreenState = !isFullscreen;
+
+        // Dismiss keyboard when entering fullscreen
+        if (newFullscreenState) {
+            Keyboard.dismiss();
+        }
+
+        onFullscreenChange(newFullscreenState);
+
+        if (newFullscreenState) {
+            await ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.LANDSCAPE
+            );
+        } else {
+            await ScreenOrientation.unlockAsync();
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            await ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.PORTRAIT_UP
+            );
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            await ScreenOrientation.unlockAsync();
+        }
+
+        showControlsAndStartTimer();
+    };
+
+    const handleBackPress = async () => {
+        if (isFullscreen) {// Force portrait orientation before unlocking for both platforms
+            await ScreenOrientation.lockAsync(
+                ScreenOrientation.OrientationLock.PORTRAIT_UP
+            );
+            await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+        onBack();
+    };
+
+    const handleBeginInputFocus = () => {
+        if (isPlaying) {
+            setIsPlaying(false);
+        }
+        showControlsAndStartTimer();
+    };
+
+    useImperativeHandle(ref, () => ({
+        handleBeginInputFocus,
+    }));
+
+    const controlsAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: controlsOpacity.value,
+    }));
+
+    return (
+        <View
+            style={[
+                styles.videoContainer,
+                isFullscreen && styles.fullscreenVideoContainer,
+            ]}
+        >
+            <Video
+                ref={videoRef}
+                source={videoSource}
+                style={styles.video}
+                controls={false}
+                resizeMode="contain"
+                paused={!isPlaying}
+                muted={isMuted}
+                progressUpdateInterval={500}
+                allowsExternalPlayback={true}
+                onError={handleVideoError}
+                onLoad={(data) => {
+                    console.log("Video Loaded:", data);
+                    setIsFinished(false);
+                    setDuration(data.duration);
+                    setCurrentTime(0);
+                }}
+                onEnd={handleVideoEnd}
+                onProgress={handleVideoProgress}
+            />
+
+            <TouchableWithoutFeedback onPress={showControlsAndStartTimer}>
+                <View style={styles.videoTouchOverlay} />
+            </TouchableWithoutFeedback>
+
+            <PlayButton
+                isPlaying={isPlaying}
+                isFinished={isFinished}
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+                onPlayPause={handlePlayPause}
+                onSeekBackward={seekBackward}
+                onSeekForward={seekForward}
+            />
+
+            <ProgressBar
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+                thumbPosition={getThumbPosition()}
+                onProgressBarPress={handleProgressBarPress}
+            />
+
+            <TimerDisplay
+                currentTime={currentTime}
+                duration={duration}
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+            />
+
+            <ControlButton
+                type="back"
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+                onPress={handleBackPress}
+            />
+
+            <CastButton
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+                onShowControls={showControlsAndStartTimer}
+            />
+
+            <ControlButton
+                type="mute"
+                isMuted={isMuted}
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+                onPress={() => {
+                    const newMutedState = !isMuted;
+                    setIsMuted(newMutedState);
+                    showControlsAndStartTimer();
+                }}
+            />
+
+            <ControlButton
+                type="fullscreen"
+                showControls={showControls}
+                controlsAnimatedStyle={controlsAnimatedStyle}
+                onPress={handleFullscreenToggle}
+            />
+        </View>
+    );
+};
+
+export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(
+    VideoPlayerComponent
 );
 
 const styles = StyleSheet.create({
