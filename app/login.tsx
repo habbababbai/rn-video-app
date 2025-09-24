@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     },
     linkText: {
         fontFamily: fonts.poppins,
-        color: colors.secondary,
+        color: colors.primary,
         fontSize: fp(13),
         lineHeight: hp(16),
         textDecorationLine: "underline",
