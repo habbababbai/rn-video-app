@@ -77,7 +77,14 @@ const VideoPlayerComponent = (
 
             if (hideControlsTimeoutRef.current) {
                 clearTimeout(hideControlsTimeoutRef.current);
+                hideControlsTimeoutRef.current = null;
             }
+
+            if (videoRef.current) {
+                videoRef.current = null;
+            }
+
+            controlsOpacity.value = 1;
 
             const cleanupOrientation = async () => {
                 try {
@@ -92,12 +99,6 @@ const VideoPlayerComponent = (
             } else {
                 cleanupOrientation();
             }
-        };
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            controlsOpacity.value = 1;
         };
     }, [controlsOpacity]);
 
@@ -313,6 +314,7 @@ const VideoPlayerComponent = (
                 allowsExternalPlayback={true}
                 onError={handleVideoError}
                 onLoad={(data) => {
+                    if (!isMountedRef.current) return;
                     console.log("Video Loaded:", data);
                     setIsFinished(false);
                     setDuration(data.duration);
@@ -320,6 +322,12 @@ const VideoPlayerComponent = (
                 }}
                 onEnd={handleVideoEnd}
                 onProgress={handleVideoProgress}
+                onLoadStart={() => {
+                    if (!isMountedRef.current) return;
+                }}
+                onBuffer={(data) => {
+                    if (!isMountedRef.current) return;
+                }}
             />
 
             <TouchableWithoutFeedback onPress={showControlsAndStartTimer}>

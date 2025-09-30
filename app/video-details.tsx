@@ -87,6 +87,14 @@ export default function VideoDetailsScreen() {
         router.back();
     }, [router]);
 
+    useEffect(() => {
+        return () => {
+            if (videoPlayerRef.current) {
+                videoPlayerRef.current = null;
+            }
+        };
+    }, []);
+
     return (
         <Animated.View
             style={[
