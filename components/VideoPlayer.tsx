@@ -214,7 +214,6 @@ const VideoPlayerComponent = (
 
         onFullscreenChange(newFullscreenState);
 
-        // Create a promise to track orientation operations
         const orientationOperation = (async () => {
             if (!isMountedRef.current) return;
 

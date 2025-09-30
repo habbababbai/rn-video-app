@@ -1,13 +1,10 @@
 import axios from "axios";
 
-// Use Expo's built-in environment variable support
 const API_KEY =
     process.env.EXPO_PUBLIC_YOUTUBE_API_KEY || "YOUR_YOUTUBE_API_KEY_HERE";
 
-// YouTube Data API configuration
 const YOUTUBE_API_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
-// Types for YouTube API responses
 export interface YouTubeVideo {
     id: {
         videoId: string;

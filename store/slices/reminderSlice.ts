@@ -2,8 +2,8 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type DailyReminderState = {
     enabled: boolean;
-    hour: number; // 0-23
-    minute: number; // 0-59
+    hour: number; 
+    minute: number; 
     notificationId?: string | null;
 };
 

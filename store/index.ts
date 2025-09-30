@@ -8,7 +8,7 @@ import videoNotesReducer from "./slices/videoNotesSlice";
 const persistConfig = {
     key: "root",
     storage: AsyncStorage,
-    whitelist: ["auth", "videoNotes", "reminder"], // Persist auth, video notes, reminder
+    whitelist: ["auth", "videoNotes", "reminder"], 
 };
 
 const appReducer = combineReducers({

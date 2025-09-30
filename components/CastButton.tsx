@@ -20,7 +20,6 @@ export const CastButton: React.FC<CastButtonProps> = ({
 }) => {
     const handleCast = () => {
         if (isIOS) {
-            // For iOS, show AirPlay instructions since Google Cast might not work properly
             Alert.alert(
                 "AirPlay",
                 "To cast this video on iOS:\n\n1. Swipe down from top-right corner\n2. Tap the AirPlay button in Control Center\n3. Select your Apple TV or AirPlay device\n\nMake sure your device and TV are on the same Wi-Fi network.",

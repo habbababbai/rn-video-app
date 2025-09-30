@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     fullscreenProgressBarContainer: {
-        bottom: hp(20), // Add bottom padding in fullscreen mode
+        bottom: hp(20), 
     },
     progressBarBackground: {
         height: hp(4),

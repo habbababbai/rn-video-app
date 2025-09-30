@@ -36,7 +36,7 @@ const videoNotesSlice = createSlice({
                 text: text.trim(),
                 timestamp: Date.now(),
                 videoId,
-                videoTime: Math.floor(videoTime), // Round down to nearest second
+                videoTime: Math.floor(videoTime),
             };
 
             if (!state.notesByVideo[videoId]) {

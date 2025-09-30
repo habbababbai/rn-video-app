@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
         zIndex: 2,
     },
     fullscreenTimerContainer: {
-        bottom: hp(28), // Add bottom padding in fullscreen mode (8 + 20)
+        bottom: hp(28), 
     },
     timerText: {
         color: colors.white,
