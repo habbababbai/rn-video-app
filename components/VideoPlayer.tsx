@@ -55,6 +55,8 @@ const VideoPlayerComponent = (
         null
     );
     const lastProgressUpdateRef = useRef(0);
+    const isMountedRef = useRef(true);
+    const orientationCleanupRef = useRef<Promise<void> | null>(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
@@ -67,21 +69,45 @@ const VideoPlayerComponent = (
 
     useEffect(() => {
         setIsMuted(false);
+        isMountedRef.current = true;
 
         return () => {
+            isMountedRef.current = false;
+
             if (hideControlsTimeoutRef.current) {
                 clearTimeout(hideControlsTimeoutRef.current);
             }
-            ScreenOrientation.unlockAsync();
+
+            const cleanupOrientation = async () => {
+                try {
+                    await ScreenOrientation.unlockAsync();
+                } catch (error) {
+                    console.warn("Error unlocking orientation:", error);
+                }
+            };
+
+            if (orientationCleanupRef.current) {
+                orientationCleanupRef.current.finally(cleanupOrientation);
+            } else {
+                cleanupOrientation();
+            }
         };
     }, []);
 
+    useEffect(() => {
+        return () => {
+            controlsOpacity.value = 1;
+        };
+    }, [controlsOpacity]);
+
     const startHideTimer = useCallback(() => {
+        if (!isMountedRef.current) return;
+
         if (hideControlsTimeoutRef.current) {
             clearTimeout(hideControlsTimeoutRef.current);
         }
         hideControlsTimeoutRef.current = setTimeout(() => {
-            if (isPlaying) {
+            if (isMountedRef.current && isPlaying) {
                 controlsOpacity.value = withTiming(0, { duration: 300 });
                 setShowControls(false);
             }
@@ -89,6 +115,8 @@ const VideoPlayerComponent = (
     }, [isPlaying, controlsOpacity]);
 
     const showControlsAndStartTimer = useCallback(() => {
+        if (!isMountedRef.current) return;
+
         controlsOpacity.value = withTiming(1, { duration: 300 });
         setShowControls(true);
         startHideTimer();
@@ -135,17 +163,22 @@ const VideoPlayerComponent = (
         setIsMuted(false);
     };
 
-    const handleVideoProgress = (data: any) => {
-        const current = data.currentTime as number;
-        if (
-            current - lastProgressUpdateRef.current >= 0.25 ||
-            current < lastProgressUpdateRef.current
-        ) {
-            lastProgressUpdateRef.current = current;
-            setCurrentTime(current);
-            onCurrentTimeChange(current);
-        }
-    };
+    const handleVideoProgress = useCallback(
+        (data: any) => {
+            if (!isMountedRef.current) return;
+
+            const current = data.currentTime as number;
+            if (
+                current - lastProgressUpdateRef.current >= 0.25 ||
+                current < lastProgressUpdateRef.current
+            ) {
+                lastProgressUpdateRef.current = current;
+                setCurrentTime(current);
+                onCurrentTimeChange(current);
+            }
+        },
+        [onCurrentTimeChange]
+    );
 
     const seekBackward = () => {
         const newTime = Math.max(0, currentTime - 5);
@@ -171,40 +204,79 @@ const VideoPlayerComponent = (
     };
 
     const handleFullscreenToggle = async () => {
+        if (!isMountedRef.current) return;
+
         const newFullscreenState = !isFullscreen;
 
-        // Dismiss keyboard when entering fullscreen
         if (newFullscreenState) {
             Keyboard.dismiss();
         }
 
         onFullscreenChange(newFullscreenState);
 
-        if (newFullscreenState) {
-            await ScreenOrientation.lockAsync(
-                ScreenOrientation.OrientationLock.LANDSCAPE
-            );
-        } else {
-            await ScreenOrientation.unlockAsync();
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            await ScreenOrientation.lockAsync(
-                ScreenOrientation.OrientationLock.PORTRAIT_UP
-            );
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            await ScreenOrientation.unlockAsync();
-        }
+        // Create a promise to track orientation operations
+        const orientationOperation = (async () => {
+            if (!isMountedRef.current) return;
 
-        showControlsAndStartTimer();
+            if (newFullscreenState) {
+                await ScreenOrientation.lockAsync(
+                    ScreenOrientation.OrientationLock.LANDSCAPE
+                );
+            } else {
+                await ScreenOrientation.unlockAsync();
+                if (!isMountedRef.current) return;
+
+                await new Promise((resolve) => setTimeout(resolve, 100));
+                if (!isMountedRef.current) return;
+
+                await ScreenOrientation.lockAsync(
+                    ScreenOrientation.OrientationLock.PORTRAIT_UP
+                );
+                if (!isMountedRef.current) return;
+
+                await new Promise((resolve) => setTimeout(resolve, 200));
+                if (!isMountedRef.current) return;
+
+                await ScreenOrientation.unlockAsync();
+            }
+        })();
+
+        orientationCleanupRef.current = orientationOperation;
+
+        try {
+            await orientationOperation;
+        } catch (error) {
+            console.warn("Error during orientation change:", error);
+        } finally {
+            if (isMountedRef.current) {
+                showControlsAndStartTimer();
+            }
+            orientationCleanupRef.current = null;
+        }
     };
 
     const handleBackPress = async () => {
+        if (!isMountedRef.current) return;
+
         if (isFullscreen) {
-            await ScreenOrientation.lockAsync(
-                ScreenOrientation.OrientationLock.PORTRAIT_UP
-            );
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            try {
+                await ScreenOrientation.lockAsync(
+                    ScreenOrientation.OrientationLock.PORTRAIT_UP
+                );
+                if (!isMountedRef.current) return;
+
+                await new Promise((resolve) => setTimeout(resolve, 200));
+            } catch (error) {
+                console.warn(
+                    "Error during back press orientation change:",
+                    error
+                );
+            }
         }
-        onBack();
+
+        if (isMountedRef.current) {
+            onBack();
+        }
     };
 
     const handleBeginInputFocus = () => {
