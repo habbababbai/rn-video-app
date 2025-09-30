@@ -31,25 +31,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
     const { keyword } = useLocalSearchParams<{ keyword?: string }>();
-    const [searchQuery, setSearchQuery] = useState(keyword || "React Native"); // Show default search in input
-    const [searchTerm, setSearchTerm] = useState(keyword || "React Native"); // Use keyword from URL or default
+    const [searchQuery, setSearchQuery] = useState(keyword || "React Native");
+    const [searchTerm, setSearchTerm] = useState(keyword || "React Native")
     const [sortOrder, setSortOrder] = useState<CustomSortOrder>("popular");
     const [showFilterModal, setShowFilterModal] = useState(false);
     const searchInputRef = useRef<TextInput>(null);
 
-    // Auto-focus the search input when the screen is focused
     useFocusEffect(
         useCallback(() => {
             const timer = setTimeout(() => {
                 if (searchInputRef.current) {
                     searchInputRef.current.focus();
                 }
-            }, 500); // Increased delay for iOS
+            }, 500);
             return () => clearTimeout(timer);
         }, [])
     );
 
-    // Handle keyword parameter changes
     useEffect(() => {
         if (keyword && keyword !== searchTerm) {
             setSearchTerm(keyword);
@@ -67,14 +65,13 @@ export default function SearchScreen() {
         refetch,
     } = useYouTubeVideosBySearchInfinite(searchTerm, 10, sortOrder);
 
-    // Flatten all pages into a single array of videos
     const allVideos = useMemo(() => {
         return data?.pages?.flatMap((page) => (page as any)?.items || []) || [];
     }, [data]);
 
     const handleSearch = useCallback(() => {
         if (searchQuery.trim() && searchQuery.trim() !== searchTerm) {
-            setSearchTerm(searchQuery.trim()); // Only set the search term when user explicitly searches
+            setSearchTerm(searchQuery.trim()); 
         }
     }, [searchQuery, searchTerm]);
 
@@ -87,7 +84,6 @@ export default function SearchScreen() {
     const handleSortChange = useCallback((newSortOrder: CustomSortOrder) => {
         setSortOrder(newSortOrder);
         setShowFilterModal(false);
-        // The hook will automatically refetch with the new sort order
     }, []);
 
     const handleRefresh = useCallback(() => {

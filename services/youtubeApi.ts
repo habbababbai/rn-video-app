@@ -92,7 +92,7 @@ export const convertCustomSortToAPI = (
         case "latest":
             return "date";
         case "oldest":
-            return "date"; // Use date but with publishedBefore to get older videos
+            return "date";
         case "popular":
             return "relevance";
         default:
@@ -105,7 +105,6 @@ export const getPublishedBeforeParam = (
 ): string | undefined => {
     switch (customSort) {
         case "oldest":
-            // Get videos published before 1 year ago to ensure older content
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
             return oneYearAgo.toISOString();
@@ -120,8 +119,7 @@ export const getMaxResultsForSort = (
 ): number => {
     switch (customSort) {
         case "oldest":
-            // Fetch more results to have a better chance of getting older videos
-            return Math.min(requestedMax * 3, 50); // Fetch up to 3x more results
+            return Math.min(requestedMax * 3, 50);
         default:
             return requestedMax;
     }
@@ -147,8 +145,6 @@ export const fetchVideosBySearchTerm = async (
                 "YouTube API key not configured. Please set EXPO_PUBLIC_YOUTUBE_API_KEY in your .env file"
             );
         }
-
-        // Use the same working parameter structure as testApiKey
         const apiSortOrder = convertCustomSortToAPI(customSortOrder);
         const actualMaxResults = getMaxResultsForSort(
             customSortOrder,
@@ -165,12 +161,10 @@ export const fetchVideosBySearchTerm = async (
             key: API_KEY,
         };
 
-        // Add publishedBefore parameter for oldest sorting
         if (publishedBefore) {
             params.publishedBefore = publishedBefore;
         }
 
-        // Add pageToken if provided for pagination
         if (pageToken) {
             params.pageToken = pageToken;
         }
@@ -183,20 +177,18 @@ export const fetchVideosBySearchTerm = async (
                     Accept: "application/json",
                     "User-Agent": "ReactNative-VideoApp/1.0",
                 },
-                timeout: 10000, // 10 second timeout
+                timeout: 10000,
             }
         );
 
         let data = response.data;
 
-        // Handle "oldest" sorting by sorting by published date and taking the oldest results
         if (customSortOrder === "oldest") {
-            // Sort by published date (oldest first) and take only the requested amount
             const sortedItems = [...data.items]
                 .sort((a, b) => {
                     const dateA = new Date(a.snippet.publishedAt);
                     const dateB = new Date(b.snippet.publishedAt);
-                    return dateA.getTime() - dateB.getTime(); // Oldest first
+                    return dateA.getTime() - dateB.getTime();
                 })
                 .slice(0, maxResults);
 

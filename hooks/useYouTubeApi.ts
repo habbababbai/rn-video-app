@@ -8,7 +8,6 @@ import {
 } from "@/services/youtubeApi";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
-// Query keys for caching
 export const youtubeQueryKeys = {
     all: ["youtube"] as const,
     videos: () => [...youtubeQueryKeys.all, "videos"] as const,
@@ -49,11 +48,10 @@ export const useYouTubeVideosBySearch = (
             return response.items;
         },
         enabled: !!searchTerm,
-        // Use global defaults for extended caching
-        retry: 1, // Reduce retries to save quota
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Faster retry
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        retry: 1,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
     });
@@ -70,14 +68,19 @@ export const useYouTubeVideosBySearchInfinite = (
             "infinite",
         ],
         queryFn: ({ pageParam }) =>
-            fetchVideosBySearchTerm(searchTerm, maxResults, pageParam, order),
+            fetchVideosBySearchTerm(
+                searchTerm,
+                maxResults,
+                pageParam as string | undefined,
+                order
+            ),
         enabled: !!searchTerm,
+        initialPageParam: undefined,
         getNextPageParam: (lastPage) => lastPage.nextPageToken,
         retry: 1,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-        // Add caching configuration similar to home page
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
     });
