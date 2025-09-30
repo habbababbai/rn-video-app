@@ -53,7 +53,7 @@ export default function SettingsScreen() {
                 name: "Default",
                 importance: Notifications.AndroidImportance.HIGH,
                 vibrationPattern: [0, 250, 250, 250],
-                lightColor: "#8D99AE",
+                lightColor: colors.secondary,
             }).catch((error) => {
                 console.log("Error setting notification channel:", error);
             });
@@ -334,11 +334,11 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     avatarSectionLongPress: {
-        backgroundColor: "#f8f9fa",
+        backgroundColor: colors.white,
         borderRadius: fp(12),
         paddingHorizontal: spacing.md,
         paddingVertical: hp(8),
-        shadowColor: "#6b7280",
+        shadowColor: colors.gray.medium,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -353,19 +353,19 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(107, 114, 128, 0.15)",
+        backgroundColor: colors.longPress,
         justifyContent: "center",
         alignItems: "center",
         borderRadius: fp(12),
         zIndex: 1,
     },
     longPressText: {
-        color: "#374151",
+        color: colors.gray.dark,
         fontFamily: fonts.poppinsSemiBold,
         fontSize: fp(12),
         fontWeight: "600",
         textAlign: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        backgroundColor: colors.longPressText,
         paddingHorizontal: wp(8),
         paddingVertical: hp(4),
         borderRadius: fp(8),

@@ -24,7 +24,7 @@ export default function HomeScreen() {
         []
     );
 
-    const { queries, refetchAll, errorCount, successCount } =
+    const { queries, refetchAll,} =
         useSynchronizedYouTubeQueries(keywords, 5, "popular");
 
     const handleRefresh = useCallback(async () => {
@@ -97,7 +97,7 @@ export default function HomeScreen() {
 
     const LoadingComponent = () => (
         <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
+            <ActivityIndicator size="small" color={colors.success} />
             <Text style={styles.loadingText}>Loading...</Text>
         </View>
     );
@@ -189,16 +189,6 @@ export default function HomeScreen() {
                     />
                 }
             />
-
-            {/* Optional: Show sync status in development */}
-            {__DEV__ && (
-                <View style={styles.debugInfo}>
-                    <Text style={styles.debugText}>
-                        Sync: {successCount}/{keywords.length} | Errors:{" "}
-                        {errorCount}
-                    </Text>
-                </View>
-            )}
         </SafeAreaView>
     );
 }
@@ -369,20 +359,5 @@ const styles = StyleSheet.create({
         fontSize: fp(14),
         color: colors.white,
         fontWeight: "600",
-    },
-    debugInfo: {
-        position: "absolute",
-        bottom: 20,
-        left: 20,
-        right: 20,
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        padding: 8,
-        borderRadius: 4,
-    },
-    debugText: {
-        color: colors.white,
-        fontSize: fp(10),
-        fontFamily: fonts.poppins,
-        textAlign: "center",
     },
 });

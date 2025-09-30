@@ -32,7 +32,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 interface YouTubeSearchPage {
     items: YouTubeVideo[];
     nextPageToken?: string;
-    pageInfo: {
+pageInfo: {
         totalResults: number;
         resultsPerPage: number;
     };

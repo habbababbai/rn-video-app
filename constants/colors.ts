@@ -18,4 +18,7 @@ export const colors = {
         timer: "rgba(0, 0, 0, 0)",
         longPress: "rgba(107, 114, 128, 0.15)",
     },
+    controls: "rgba(0, 0, 0, 0.1)",
+    longPress: "rgba(107, 114, 128, 0.15)",
+    longPressText: "rgba(255, 255, 255, 0.9)",
 };

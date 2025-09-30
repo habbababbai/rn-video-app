@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.1)",
+        backgroundColor: colors.controls,
         zIndex: 10,
     },
     controlsRow: {

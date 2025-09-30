@@ -1,3 +1,4 @@
+import { colors } from "@/constants/colors";
 import { RootState } from "@/store";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
@@ -19,7 +20,7 @@ export default function Index() {
         <View
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={colors.success} />
         </View>
     );
 }
