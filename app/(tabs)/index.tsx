@@ -2,11 +2,11 @@ import SearchIcon from "@/assets/images/svg/search-icon.svg";
 import SettingsIcon from "@/assets/images/svg/settings-icon.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
-import { useYouTubeVideosBySearch } from "@/hooks/useYouTubeApi";
+import { useSynchronizedYouTubeQueries } from "@/hooks/useSynchronizedYouTubeQueries";
 import { YouTubeVideo } from "@/services/youtubeApi";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router } from "expo-router";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -19,66 +19,53 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
-    const keywords = ["React Native", "React", "TypeScript", "Javascript"];
-
-    const reactNativeQuery = useYouTubeVideosBySearch(
-        "React Native",
-        5,
-        "popular"
-    );
-    const reactQuery = useYouTubeVideosBySearch("React", 5, "popular");
-    const typescriptQuery = useYouTubeVideosBySearch(
-        "TypeScript",
-        5,
-        "popular"
-    );
-    const javascriptQuery = useYouTubeVideosBySearch(
-        "Javascript",
-        5,
-        "popular"
+    const keywords = useMemo(
+        () => ["React Native", "React", "TypeScript", "Javascript"],
+        []
     );
 
-    const queries = [
-        reactNativeQuery,
-        reactQuery,
-        typescriptQuery,
-        javascriptQuery,
-    ];
+    const { queries, refetchAll, errorCount, successCount } =
+        useSynchronizedYouTubeQueries(keywords, 5, "popular");
 
-    const handleRefresh = () => {
-        queries.forEach((query) => {
-            if (query.refetch) {
-                query.refetch();
-            }
-        });
-    };
+    const handleRefresh = useCallback(async () => {
+        try {
+            await refetchAll();
+        } catch (error) {
+            console.warn("Failed to refresh some queries:", error);
+        }
+    }, [refetchAll]);
 
-    const isRefreshing = queries.some((query) => query.isFetching);
+    const isRefreshing = useMemo(() => {
+        return queries.some((query) => query.isLoading);
+    }, [queries]);
 
-    const renderVideoItem = ({ item }: { item: YouTubeVideo }) => (
-        <TouchableWithoutFeedback
-            onPress={() =>
-                router.push(`/video-details?videoId=${item.id.videoId}`)
-            }
-        >
-            <View style={styles.videoItem}>
-                <Image
-                    source={{ uri: item.snippet.thumbnails.medium.url }}
-                    style={styles.thumbnail}
-                    resizeMode="cover"
-                />
-                <View style={styles.videoInfo}>
-                    <Text style={styles.videoTitle} numberOfLines={2}>
-                        {item.snippet.title}
-                    </Text>
-                    <Text style={styles.videoUploadDate} numberOfLines={1}>
-                        {new Date(
-                            item.snippet.publishedAt
-                        ).toLocaleDateString()}
-                    </Text>
+    const renderVideoItem = useCallback(
+        ({ item }: { item: YouTubeVideo }) => (
+            <TouchableWithoutFeedback
+                onPress={() =>
+                    router.push(`/video-details?videoId=${item.id.videoId}`)
+                }
+            >
+                <View style={styles.videoItem}>
+                    <Image
+                        source={{ uri: item.snippet.thumbnails.medium.url }}
+                        style={styles.thumbnail}
+                        resizeMode="cover"
+                    />
+                    <View style={styles.videoInfo}>
+                        <Text style={styles.videoTitle} numberOfLines={2}>
+                            {item.snippet.title}
+                        </Text>
+                        <Text style={styles.videoUploadDate} numberOfLines={1}>
+                            {new Date(
+                                item.snippet.publishedAt
+                            ).toLocaleDateString()}
+                        </Text>
+                    </View>
                 </View>
-            </View>
-        </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
+        ),
+        []
     );
 
     const renderPlaceholderVideo = () => (
@@ -115,54 +102,57 @@ export default function HomeScreen() {
         </View>
     );
 
-    const renderSection = ({
-        item,
-        index,
-    }: {
-        item: string;
-        index: number;
-    }) => {
-        const query = queries[index];
-        const keyword = keywords[index];
+    const renderSection = useCallback(
+        ({ item, index }: { item: string; index: number }) => {
+            const query = queries[index];
+            const keyword = keywords[index];
 
-        return (
-            <View>
-                {index > 0 && <View style={styles.separator} />}
-                <View style={styles.section}>
-                    <View style={styles.sectionTitleContainer}>
-                        <Text style={styles.sectionTitle}>{keyword}</Text>
-                        <TouchableWithoutFeedback
-                            onPress={() =>
-                                router.push(
-                                    `/(tabs)/search?keyword=${encodeURIComponent(
-                                        keyword
-                                    )}`
-                                )
-                            }
-                        >
-                            <Text style={styles.showMoreText}>Show more</Text>
-                        </TouchableWithoutFeedback>
-                    </View>
-                    {query.isLoading ? (
-                        <LoadingComponent />
-                    ) : query.isError ? (
-                        <View style={styles.horizontalList}>
-                            {renderPlaceholderVideo()}
+            return (
+                <View>
+                    {index > 0 && <View style={styles.separator} />}
+                    <View style={styles.section}>
+                        <View style={styles.sectionTitleContainer}>
+                            <Text style={styles.sectionTitle}>{keyword}</Text>
+                            <TouchableWithoutFeedback
+                                onPress={() =>
+                                    router.push(
+                                        `/(tabs)/search?keyword=${encodeURIComponent(
+                                            keyword
+                                        )}`
+                                    )
+                                }
+                            >
+                                <Text style={styles.showMoreText}>
+                                    Show more
+                                </Text>
+                            </TouchableWithoutFeedback>
                         </View>
-                    ) : query.data ? (
-                        <FlatList
-                            data={query.data.slice(0, 5)}
-                            renderItem={renderVideoItem}
-                            keyExtractor={(video) => video.id.videoId}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.horizontalList}
-                        />
-                    ) : null}
+                        {query.isLoading ? (
+                            <LoadingComponent />
+                        ) : query.isError ? (
+                            <View style={styles.horizontalList}>
+                                {renderPlaceholderVideo()}
+                            </View>
+                        ) : query.data && query.data.length > 0 ? (
+                            <FlatList
+                                data={query.data.slice(0, 5)}
+                                renderItem={renderVideoItem}
+                                keyExtractor={(video) => video.id.videoId}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.horizontalList}
+                            />
+                        ) : (
+                            <View style={styles.horizontalList}>
+                                {renderPlaceholderVideo()}
+                            </View>
+                        )}
+                    </View>
                 </View>
-            </View>
-        );
-    };
+            );
+        },
+        [queries, renderVideoItem, keywords]
+    );
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
@@ -199,6 +189,16 @@ export default function HomeScreen() {
                     />
                 }
             />
+
+            {/* Optional: Show sync status in development */}
+            {__DEV__ && (
+                <View style={styles.debugInfo}>
+                    <Text style={styles.debugText}>
+                        Sync: {successCount}/{keywords.length} | Errors:{" "}
+                        {errorCount}
+                    </Text>
+                </View>
+            )}
         </SafeAreaView>
     );
 }
@@ -369,5 +369,20 @@ const styles = StyleSheet.create({
         fontSize: fp(14),
         color: colors.white,
         fontWeight: "600",
+    },
+    debugInfo: {
+        position: "absolute",
+        bottom: 20,
+        left: 20,
+        right: 20,
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        padding: 8,
+        borderRadius: 4,
+    },
+    debugText: {
+        color: colors.white,
+        fontSize: fp(10),
+        fontFamily: fonts.poppins,
+        textAlign: "center",
     },
 });

@@ -10,21 +10,28 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import { persistor, store } from "@/store";
 
-
 const asyncStoragePersister = createAsyncStoragePersister({
     storage: AsyncStorage,
     key: "react-query-cache",
-    throttleTime: 1000, 
+    throttleTime: 1000,
 });
 
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 24 * 60 * 60 * 1000, 
-            gcTime: 7 * 24 * 60 * 60 * 1000, 
-            retry: 1, 
-            refetchOnWindowFocus: false, 
-            refetchOnReconnect: false, 
+            staleTime: 5 * 60 * 1000,
+            gcTime: 30 * 60 * 1000,
+            retry: 2,
+            retryDelay: (attemptIndex) =>
+                Math.min(1000 * 2 ** attemptIndex, 10000),
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+            refetchOnMount: false,
+        },
+        mutations: {
+            retry: 1,
+            retryDelay: (attemptIndex) =>
+                Math.min(1000 * 2 ** attemptIndex, 5000),
         },
     },
 });
