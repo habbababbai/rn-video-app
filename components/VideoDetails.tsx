@@ -43,14 +43,10 @@ export function VideoDetails({
                     ? videoDetails.snippet.title
                     : "Placeholder Video Name"}
             </Text>
-            
+
             <View style={styles.channelDetailsContainer}>
                 <View style={styles.accountIconContainer}>
-                    <PersonIcon
-                        width={wp(24)}
-                        height={hp(24)}
-                        fill="white"
-                    />
+                    <PersonIcon width={wp(24)} height={hp(24)} fill="white" />
                 </View>
                 <Text style={styles.channelName}>
                     {shouldShowRealData
@@ -173,5 +169,7 @@ const styles = StyleSheet.create({
         color: colors.gray.dark,
         letterSpacing: wp(0.5),
         ...(!isIOS ? { fontWeight: "700" } : {}),
+        alignSelf: "flex-start",
+        paddingLeft: spacing.xs,
     },
 });
