@@ -16,5 +16,6 @@ export const colors = {
         dark: "rgba(0, 0, 0, 0.25)",
         light: "rgba(255, 255, 255, 0.3)",
         timer: "rgba(0, 0, 0, 0)",
+        longPress: "rgba(107, 114, 128, 0.15)",
     },
 };

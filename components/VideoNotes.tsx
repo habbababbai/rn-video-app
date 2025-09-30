@@ -29,7 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 interface VideoNotesProps {
     videoId: string;
-    currentVideoTime?: number; 
+    currentVideoTime?: number;
     onBeginInputFocus?: () => void;
 }
 
@@ -249,10 +249,10 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     noteItemLongPress: {
-        backgroundColor: "#f8f9fa",
-        borderColor: "#6b7280",
+        backgroundColor: colors.gray.light,
+        borderColor: colors.gray.medium,
         borderWidth: wp(1.5),
-        shadowColor: "#6b7280",
+        shadowColor: colors.gray.medium,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -267,19 +267,19 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(107, 114, 128, 0.15)",
+        backgroundColor: colors.overlay.longPress,
         justifyContent: "center",
         alignItems: "center",
         borderRadius: fp(12),
         zIndex: 1,
     },
     longPressText: {
-        color: "#374151",
+        color: colors.gray.dark,
         fontFamily: fonts.poppinsSemiBold,
         fontSize: fp(12),
         fontWeight: "600",
         textAlign: "center",
-        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        backgroundColor: colors.white,
         paddingHorizontal: wp(8),
         paddingVertical: hp(4),
         borderRadius: fp(8),
