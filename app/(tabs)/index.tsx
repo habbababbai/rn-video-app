@@ -4,7 +4,6 @@ import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearch } from "@/hooks/useYouTubeApi";
 import { YouTubeVideo } from "@/services/youtubeApi";
-import { logout } from "@/store/slices/authSlice";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router } from "expo-router";
 import React from "react";
@@ -19,11 +18,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch } from "react-redux";
-
 export default function HomeScreen() {
-    const dispatch = useDispatch();
-
     const keywords = ["React Native", "React", "TypeScript", "Javascript"];
 
     const reactNativeQuery = useYouTubeVideosBySearch(
@@ -49,11 +44,6 @@ export default function HomeScreen() {
         typescriptQuery,
         javascriptQuery,
     ];
-
-    const handleLogout = () => {
-        dispatch(logout());
-        router.replace("/login" as any);
-    };
 
     const handleRefresh = () => {
         queries.forEach((query) => {
@@ -218,24 +208,24 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 20,
         paddingVertical: 15,
-        backgroundColor: "#fff",
+        backgroundColor: colors.white,
         borderBottomWidth: 1,
-        borderBottomColor: "#e0e0e0",
+        borderBottomColor: colors.gray.light,
     },
     title: {
         fontSize: fp(18),
         fontFamily: fonts.poppinsSemiBold,
         fontWeight: "bold",
         letterSpacing: wp(2),
-        color: "#333",
+        color: colors.gray.dark,
     },
     listContainer: {
         paddingBottom: 20,
     },
     section: {
-        marginVertical: 15,
-        backgroundColor: "#fff",
-        paddingVertical: 15,
+        marginVertical: hp(15),
+        backgroundColor: colors.white,
+        paddingVertical: wp(15),
     },
     sectionTitle: {
         fontSize: fp(18),
@@ -267,10 +257,10 @@ const styles = StyleSheet.create({
     },
     videoItem: {
         width: 200,
-        backgroundColor: "#fff",
-        marginRight: 12,
+        backgroundColor: colors.white,
+        marginRight: wp(12),
         overflow: "hidden",
-        shadowColor: "#000",
+        shadowColor: colors.black,
         shadowOffset: {
             width: 0,
             height: 2,
@@ -285,7 +275,7 @@ const styles = StyleSheet.create({
         borderRadius: fp(16),
     },
     videoInfo: {
-        padding: 12,
+        padding: fp(12),
     },
     videoTitle: {
         fontFamily: fonts.poppinsMedium,
@@ -315,32 +305,32 @@ const styles = StyleSheet.create({
     },
     loadingContainer: {
         alignItems: "center",
-        paddingVertical: 20,
-        paddingHorizontal: 20,
+        paddingVertical: hp(20),
+        paddingHorizontal: wp(20),
     },
     loadingText: {
         marginTop: 8,
         fontSize: 14,
-        color: "#007AFF",
+        color: colors.success,
         fontWeight: "500",
     },
     errorText: {
         fontSize: 14,
-        color: "#dc3545",
+        color: colors.alert,
         fontWeight: "500",
         textAlign: "center",
-        paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingHorizontal: wp(20),
+        paddingVertical: hp(10),
     },
     logoutButton: {
-        backgroundColor: "#FF3B30",
+        backgroundColor: colors.alert,
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 6,
     },
     logoutButtonText: {
-        color: "#FFFFFF",
-        fontSize: 14,
+        color: colors.white,
+        fontSize: fp(14),
         fontWeight: "600",
     },
     searchIcon: { margin: spacing.xs },
