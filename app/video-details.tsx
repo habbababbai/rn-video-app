@@ -121,16 +121,18 @@ export default function VideoDetailsScreen() {
                         </View>
                     )}
 
-                    <VideoDetails
-                        videoDetails={videoDetails}
-                        shouldShowRealData={shouldShowRealData}
-                        videoId={videoId}
-                        isLoading={isLoading}
-                        error={error}
-                        currentTime={currentTime}
-                        onBeginInputFocus={handleBeginInputFocus}
-                        isFullscreen={isFullscreen}
-                    />
+                    {videoDetails && (
+                        <VideoDetails
+                            videoDetails={videoDetails}
+                            shouldShowRealData={shouldShowRealData}
+                            videoId={videoId}
+                            isLoading={isLoading}
+                            error={error}
+                            currentTime={currentTime}
+                            onBeginInputFocus={handleBeginInputFocus}
+                            isFullscreen={isFullscreen}
+                        />
+                    )}
                 </GestureHandlerRootView>
             </TouchableWithoutFeedback>
         </Animated.View>
