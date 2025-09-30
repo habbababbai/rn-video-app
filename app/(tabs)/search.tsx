@@ -3,11 +3,7 @@ import SortModal from "@/components/SortModal";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearchInfinite } from "@/hooks/useYouTubeApi";
-import {
-    CustomSortOrder,
-    YouTubeSearchResponse,
-    YouTubeVideo,
-} from "@/services/youtubeApi";
+import { CustomSortOrder, YouTubeVideo } from "@/services/youtubeApi";
 import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -33,8 +29,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface YouTubeSearchPage extends YouTubeSearchResponse {
-    pageInfo?: {
+interface YouTubeSearchPage {
+    items: YouTubeVideo[];
+    nextPageToken?: string;
+    pageInfo: {
         totalResults: number;
         resultsPerPage: number;
     };

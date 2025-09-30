@@ -9,7 +9,7 @@ import Animated, { AnimatedStyle } from "react-native-reanimated";
 
 interface CastButtonProps {
     showControls: boolean;
-    controlsAnimatedStyle: AnimatedStyle;
+    controlsAnimatedStyle: AnimatedStyle | any;
     onShowControls: () => void;
 }
 
