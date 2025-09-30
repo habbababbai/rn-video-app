@@ -5,14 +5,14 @@ import { colors } from "@/constants/colors";
 import { hp, wp } from "@/utils/responsive";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, { AnimatedStyle } from "react-native-reanimated";
 
 export type ControlButtonType = "back" | "mute" | "fullscreen";
 
 interface ControlButtonProps {
     type: ControlButtonType;
     showControls: boolean;
-    controlsAnimatedStyle: any;
+    controlsAnimatedStyle: AnimatedStyle;
     onPress: () => void;
     isMuted?: boolean;
 }

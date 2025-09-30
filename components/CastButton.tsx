@@ -5,11 +5,11 @@ import { hp, wp } from "@/utils/responsive";
 import React from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { CastButton as GoogleCastButton } from "react-native-google-cast";
-import Animated from "react-native-reanimated";
+import Animated, { AnimatedStyle } from "react-native-reanimated";
 
 interface CastButtonProps {
     showControls: boolean;
-    controlsAnimatedStyle: any;
+    controlsAnimatedStyle: AnimatedStyle;
     onShowControls: () => void;
 }
 

@@ -2,13 +2,14 @@ import LikesIcon from "@/assets/images/svg/likes.svg";
 import ViewsIcon from "@/assets/images/svg/views.svg";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
+import { YouTubeVideoDetails } from "@/services/youtubeApi";
 import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface DetailsTabProps {
-    videoDetails: any;
+    videoDetails: YouTubeVideoDetails;
     shouldShowRealData: boolean;
     videoId: string;
     isLoading: boolean;

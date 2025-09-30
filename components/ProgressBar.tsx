@@ -1,14 +1,19 @@
 import { colors } from "@/constants/colors";
 import { hp, wp } from "@/utils/responsive";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import Animated from "react-native-reanimated";
+import {
+    GestureResponderEvent,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import Animated, { AnimatedStyle } from "react-native-reanimated";
 
 interface ProgressBarProps {
     showControls: boolean;
-    controlsAnimatedStyle: any;
+    controlsAnimatedStyle: AnimatedStyle | any;
     thumbPosition: number;
-    onProgressBarPress: (event: any) => void;
+    onProgressBarPress: (event: GestureResponderEvent) => void;
     isFullscreen?: boolean;
 }
 
@@ -60,7 +65,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     fullscreenProgressBarContainer: {
-        bottom: hp(20), 
+        bottom: hp(20),
     },
     progressBarBackground: {
         height: hp(4),

@@ -8,7 +8,7 @@ import videoNotesReducer from "./slices/videoNotesSlice";
 const persistConfig = {
     key: "root",
     storage: AsyncStorage,
-    whitelist: ["auth", "videoNotes", "reminder"], 
+    whitelist: ["auth", "videoNotes", "reminder"],
 };
 
 const appReducer = combineReducers({
@@ -17,7 +17,12 @@ const appReducer = combineReducers({
     reminder: reminderReducer,
 });
 
-const rootReducer = (state: any, action: any) => {
+type RootState = ReturnType<typeof appReducer>;
+
+const rootReducer = (
+    state: RootState | undefined,
+    action: { type: string }
+) => {
     if (action.type === "auth/logout") {
         state = undefined;
     }
@@ -38,5 +43,5 @@ export const store = configureStore({
 
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>;
+export type { RootState };
 export type AppDispatch = typeof store.dispatch;

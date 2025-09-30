@@ -3,13 +3,13 @@ import { fonts } from "@/constants/fonts";
 import { fp, hp, wp } from "@/utils/responsive";
 import React from "react";
 import { StyleSheet, Text } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, { AnimatedStyle } from "react-native-reanimated";
 
 interface TimerDisplayProps {
     currentTime: number;
     duration: number;
     showControls: boolean;
-    controlsAnimatedStyle: any;
+    controlsAnimatedStyle: AnimatedStyle | any;
     isFullscreen?: boolean;
 }
 

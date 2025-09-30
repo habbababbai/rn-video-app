@@ -6,13 +6,13 @@ import { colors } from "@/constants/colors";
 import { hp, wp } from "@/utils/responsive";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, { AnimatedStyle } from "react-native-reanimated";
 
 interface PlayButtonProps {
     isPlaying: boolean;
     isFinished: boolean;
     showControls: boolean;
-    controlsAnimatedStyle: any;
+    controlsAnimatedStyle: AnimatedStyle | any;
     onPlayPause: () => void;
     onSeekBackward: () => void;
     onSeekForward: () => void;

@@ -3,7 +3,11 @@ import SortModal from "@/components/SortModal";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
 import { useYouTubeVideosBySearchInfinite } from "@/hooks/useYouTubeApi";
-import { CustomSortOrder, YouTubeVideo } from "@/services/youtubeApi";
+import {
+    CustomSortOrder,
+    YouTubeSearchResponse,
+    YouTubeVideo,
+} from "@/services/youtubeApi";
 import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -29,10 +33,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+interface YouTubeSearchPage extends YouTubeSearchResponse {
+    pageInfo?: {
+        totalResults: number;
+        resultsPerPage: number;
+    };
+}
+
 export default function SearchScreen() {
     const { keyword } = useLocalSearchParams<{ keyword?: string }>();
     const [searchQuery, setSearchQuery] = useState(keyword || "React Native");
-    const [searchTerm, setSearchTerm] = useState(keyword || "React Native")
+    const [searchTerm, setSearchTerm] = useState(keyword || "React Native");
     const [sortOrder, setSortOrder] = useState<CustomSortOrder>("popular");
     const [showFilterModal, setShowFilterModal] = useState(false);
     const searchInputRef = useRef<TextInput>(null);
@@ -66,12 +77,16 @@ export default function SearchScreen() {
     } = useYouTubeVideosBySearchInfinite(searchTerm, 10, sortOrder);
 
     const allVideos = useMemo(() => {
-        return data?.pages?.flatMap((page) => (page as any)?.items || []) || [];
+        return (
+            data?.pages?.flatMap(
+                (page) => (page as YouTubeSearchPage)?.items || []
+            ) || []
+        );
     }, [data]);
 
     const handleSearch = useCallback(() => {
         if (searchQuery.trim() && searchQuery.trim() !== searchTerm) {
-            setSearchTerm(searchQuery.trim()); 
+            setSearchTerm(searchQuery.trim());
         }
     }, [searchQuery, searchTerm]);
 
@@ -263,11 +278,11 @@ export default function SearchScreen() {
                     {searchTerm && allVideos.length > 0 && (
                         <View style={styles.resultsHeader}>
                             <Text style={styles.resultsCount}>
-                                {(data?.pages?.[0] as any)?.pageInfo
-                                    ?.totalResults
+                                {(data?.pages?.[0] as YouTubeSearchPage)
+                                    ?.pageInfo?.totalResults
                                     ? `${(
-                                          data.pages[0] as any
-                                      ).pageInfo.totalResults.toLocaleString()} results found for `
+                                          data?.pages[0] as YouTubeSearchPage
+                                      ).pageInfo?.totalResults.toLocaleString()} results found for `
                                     : `${allVideos.length} videos found for `}
                                 <Text style={styles.searchTermBold}>
                                     &quot;{searchTerm}&quot;

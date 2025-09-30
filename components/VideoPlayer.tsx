@@ -16,6 +16,7 @@ import React, {
 } from "react";
 import {
     Dimensions,
+    GestureResponderEvent,
     Keyboard,
     StyleSheet,
     TouchableWithoutFeedback,
@@ -29,7 +30,7 @@ import {
 import Video, { VideoRef } from "react-native-video";
 
 interface VideoPlayerProps {
-    videoSource: { uri: any };
+    videoSource: { uri: string };
     isFullscreen: boolean;
     onFullscreenChange: (isFullscreen: boolean) => void;
     onBack: () => void;
@@ -164,10 +165,10 @@ const VideoPlayerComponent = (
     };
 
     const handleVideoProgress = useCallback(
-        (data: any) => {
+        (data: { currentTime: number }) => {
             if (!isMountedRef.current) return;
 
-            const current = data.currentTime as number;
+            const current = data.currentTime;
             if (
                 current - lastProgressUpdateRef.current >= 0.25 ||
                 current < lastProgressUpdateRef.current
@@ -192,7 +193,7 @@ const VideoPlayerComponent = (
         showControlsAndStartTimer();
     };
 
-    const handleProgressBarPress = (event: any) => {
+    const handleProgressBarPress = (event: GestureResponderEvent) => {
         const { locationX } = event.nativeEvent;
         const progress = Math.max(
             0,

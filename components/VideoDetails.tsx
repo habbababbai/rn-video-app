@@ -3,13 +3,14 @@ import { DetailsTab } from "@/components/DetailsTab";
 import { NotesTab } from "@/components/NotesTab";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
+import { YouTubeVideoDetails } from "@/services/youtubeApi";
 import { isIOS } from "@/utils/platform";
 import { fp, hp, spacing, wp } from "@/utils/responsive";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface VideoDetailsProps {
-    videoDetails: any;
+    videoDetails: YouTubeVideoDetails;
     shouldShowRealData: boolean;
     videoId: string;
     isLoading: boolean;

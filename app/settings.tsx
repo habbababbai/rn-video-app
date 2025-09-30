@@ -147,7 +147,7 @@ export default function SettingsScreen() {
     const onChangeTime = async (_: any, selectedDate?: Date) => {
         const currentDate = selectedDate ?? time;
         setTime(currentDate);
-        setShowAndroidPicker(false); // Close Android picker
+        setShowAndroidPicker(false);
         dispatch(
             setReminderTime({
                 hour: currentDate.getHours(),
@@ -196,7 +196,7 @@ export default function SettingsScreen() {
                 style: "destructive",
                 onPress: () => {
                     dispatch(logout());
-                    router.replace("/login" as any);
+                    router.replace("/login");
                 },
             },
         ]);

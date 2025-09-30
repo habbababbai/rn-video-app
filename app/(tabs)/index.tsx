@@ -115,7 +115,13 @@ export default function HomeScreen() {
         </View>
     );
 
-    const renderSection = ({ item, index }: { item: any; index: number }) => {
+    const renderSection = ({
+        item,
+        index,
+    }: {
+        item: string;
+        index: number;
+    }) => {
         const query = queries[index];
         const keyword = keywords[index];
 

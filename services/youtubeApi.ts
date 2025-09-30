@@ -82,6 +82,17 @@ export interface YouTubeVideoDetailsResponse {
 export type SortOrder = "relevance" | "date" | "rating" | "viewCount" | "title";
 export type CustomSortOrder = "latest" | "oldest" | "popular";
 
+interface YouTubeSearchParams {
+    part: string;
+    q: string;
+    type: string;
+    maxResults: number;
+    order: SortOrder;
+    key: string;
+    publishedBefore?: string;
+    pageToken?: string;
+}
+
 export const convertCustomSortToAPI = (
     customSort: CustomSortOrder
 ): SortOrder => {
@@ -149,7 +160,7 @@ export const fetchVideosBySearchTerm = async (
         );
         const publishedBefore = getPublishedBeforeParam(customSortOrder);
 
-        const params: any = {
+        const params: YouTubeSearchParams = {
             part: "snippet",
             q: searchTerm,
             type: "video",
